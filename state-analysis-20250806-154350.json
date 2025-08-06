@@ -1,0 +1,16 @@
+{
+  "ResourceGroup": "eShopCleverRG",
+  "Timestamp": "2025-08-06 15:43:50",
+  "StorageAccount": "eshopterraformstate8636",
+  "AzureResources": [],
+  "SubscriptionId": "5f62fee3-b00a-44d2-86e5-5cf130b28b5d",
+  "HealthCheck": {
+    "BackendConnectivity": "OK",
+    "AzureAuth": "OK",
+    "StorageAccess": "OK",
+    "StateLock": "OK"
+  },
+  "StateAnalysis": {},
+  "Action": "health",
+  "TerraformResources": []
+}

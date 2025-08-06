@@ -1,0 +1,17 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: eshop-cpu-stress
+  namespace: eshop
+spec:
+  mode: all
+  duration: "300s"
+  selector:
+    namespaces:
+      - eshop
+    labelSelectors:
+      app: eshop-webmvc
+  stressors:
+    cpu:
+      workers: 4
+      load: 95

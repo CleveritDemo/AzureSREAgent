@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eshop-config
+  namespace: eshop
+data:
+  # Base URLs - Using the external IP
+  baseUrls__webBase: "http://4.156.189.241"
+  baseUrls__apiBase: "http://eshop-publicapi.eshop.svc.cluster.local/api/"
+  
+  # Application Settings
+  ASPNETCORE_ENVIRONMENT: "Docker"
+  UseOnlyInMemoryDatabase: "false"

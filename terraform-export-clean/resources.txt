@@ -1,0 +1,5 @@
+/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg
+/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr
+/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerService/managedClusters/eshopsreaks
+/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv
+/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/databases/eshopdb

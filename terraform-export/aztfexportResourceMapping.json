@@ -1,0 +1,97 @@
+{
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg",
+		"resource_type": "azurerm_resource_group",
+		"resource_name": "res-0"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr",
+		"resource_type": "azurerm_container_registry",
+		"resource_name": "res-1"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr/scopeMaps/_repositories_admin": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr/scopeMaps/_repositories_admin",
+		"resource_type": "azurerm_container_registry_scope_map",
+		"resource_name": "res-2"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr/scopeMaps/_repositories_pull": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr/scopeMaps/_repositories_pull",
+		"resource_type": "azurerm_container_registry_scope_map",
+		"resource_name": "res-3"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr/scopeMaps/_repositories_pull_metadata_read": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr/scopeMaps/_repositories_pull_metadata_read",
+		"resource_type": "azurerm_container_registry_scope_map",
+		"resource_name": "res-4"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr/scopeMaps/_repositories_push": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr/scopeMaps/_repositories_push",
+		"resource_type": "azurerm_container_registry_scope_map",
+		"resource_name": "res-5"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr/scopeMaps/_repositories_push_metadata_write": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerRegistry/registries/eshopsreacr/scopeMaps/_repositories_push_metadata_write",
+		"resource_type": "azurerm_container_registry_scope_map",
+		"resource_name": "res-6"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerService/managedClusters/eshopsreaks": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerService/managedClusters/eshopsreaks",
+		"resource_type": "azurerm_kubernetes_cluster",
+		"resource_name": "res-7"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerService/managedClusters/eshopsreaks/agentPools/nodepool1": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.ContainerService/managedClusters/eshopsreaks/agentPools/nodepool1",
+		"resource_type": "azurerm_kubernetes_cluster_node_pool",
+		"resource_name": "res-8"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv",
+		"resource_type": "azurerm_mssql_server",
+		"resource_name": "res-9"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/databases/eshopdb": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/databases/eshopdb",
+		"resource_type": "azurerm_mssql_database",
+		"resource_name": "res-19"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/databases/eshopdb/extendedAuditingSettings/Default": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/databases/eshopdb/extendedAuditingSettings/Default",
+		"resource_type": "azurerm_mssql_database_extended_auditing_policy",
+		"resource_name": "res-30"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/databases/master/extendedAuditingSettings/Default": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/databases/master/extendedAuditingSettings/Default",
+		"resource_type": "azurerm_mssql_database_extended_auditing_policy",
+		"resource_name": "res-39"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/devOpsAuditingSettings/Default": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/devOpsAuditingSettings/Default",
+		"resource_type": "azurerm_mssql_server_microsoft_support_auditing_policy",
+		"resource_name": "res-45"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/encryptionProtector/current": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/encryptionProtector/current",
+		"resource_type": "azurerm_mssql_server_transparent_data_encryption",
+		"resource_name": "res-46"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/extendedAuditingSettings/Default": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/extendedAuditingSettings/Default",
+		"resource_type": "azurerm_mssql_server_extended_auditing_policy",
+		"resource_name": "res-47"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/firewallRules/AllowAllAzureIPs": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/firewallRules/AllowAllAzureIPs",
+		"resource_type": "azurerm_mssql_firewall_rule",
+		"resource_name": "res-48"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/firewallRules/AllowMyIP": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/firewallRules/AllowMyIP",
+		"resource_type": "azurerm_mssql_firewall_rule",
+		"resource_name": "res-49"
+	},
+	"/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/securityAlertPolicies/Default": {
+		"resource_id": "/subscriptions/cab7669e-f28b-4420-8e9d-c8ad1634ce44/resourceGroups/eShopDemoSRErg/providers/Microsoft.Sql/servers/eshopsre-sqlsrv/securityAlertPolicies/Default",
+		"resource_type": "azurerm_mssql_server_security_alert_policy",
+		"resource_name": "res-51"
+	}
+}

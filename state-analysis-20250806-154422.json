@@ -1,0 +1,213 @@
+{
+  "ResourceGroup": "eShopCleverRG",
+  "Timestamp": "2025-08-06 15:44:22",
+  "StorageAccount": "eshopterraformstate8636",
+  "AzureResources": [
+    {
+      "Sku": null,
+      "Location": "eastus2",
+      "Id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Sql/servers/eshopclever-sqlsrv",
+      "Kind": "v12.0",
+      "Type": "Microsoft.Sql/servers",
+      "Name": "eshopclever-sqlsrv"
+    },
+    {
+      "Sku": {
+        "capacity": null,
+        "family": null,
+        "model": null,
+        "name": "Base",
+        "size": null,
+        "tier": "Free"
+      },
+      "Location": "eastus",
+      "Id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.ContainerService/managedClusters/eshopcleveraks",
+      "Kind": null,
+      "Type": "Microsoft.ContainerService/managedClusters",
+      "Name": "eshopcleveraks"
+    },
+    {
+      "Sku": {
+        "capacity": null,
+        "family": null,
+        "model": null,
+        "name": "Basic",
+        "size": null,
+        "tier": "Basic"
+      },
+      "Location": "eastus",
+      "Id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.ContainerRegistry/registries/eshopcleveracr",
+      "Kind": null,
+      "Type": "Microsoft.ContainerRegistry/registries",
+      "Name": "eshopcleveracr"
+    },
+    {
+      "Sku": {
+        "capacity": 10,
+        "family": null,
+        "model": null,
+        "name": "Standard",
+        "size": null,
+        "tier": "Standard"
+      },
+      "Location": "eastus2",
+      "Id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Sql/servers/eshopclever-sqlsrv/databases/eshopdb",
+      "Kind": "v12.0,user",
+      "Type": "Microsoft.Sql/servers/databases",
+      "Name": "eshopclever-sqlsrv/eshopdb"
+    },
+    {
+      "Sku": {
+        "capacity": 0,
+        "family": null,
+        "model": null,
+        "name": "System",
+        "size": null,
+        "tier": "System"
+      },
+      "Location": "eastus2",
+      "Id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Sql/servers/eshopclever-sqlsrv/databases/master",
+      "Kind": "v12.0,system",
+      "Type": "Microsoft.Sql/servers/databases",
+      "Name": "eshopclever-sqlsrv/master"
+    },
+    {
+      "Sku": {
+        "capacity": null,
+        "family": null,
+        "model": null,
+        "name": "Standard_LRS",
+        "size": null,
+        "tier": "Standard"
+      },
+      "Location": "eastus",
+      "Id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Storage/storageAccounts/eshopterraformstate8636",
+      "Kind": "StorageV2",
+      "Type": "Microsoft.Storage/storageAccounts",
+      "Name": "eshopterraformstate8636"
+    }
+  ],
+  "SubscriptionId": "5f62fee3-b00a-44d2-86e5-5cf130b28b5d",
+  "HealthCheck": {},
+  "StateAnalysis": {
+    "TotalAzureResources": 6,
+    "Missing": [
+      {
+        "TerraformResource": "azurerm_mssql_firewall_rule.allow_all",
+        "Status": "MISSING_IN_AZURE",
+        "ResourceId": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Sql/servers/eshopclever-sqlsrv/firewallRules/AllowAll"
+      },
+      {
+        "TerraformResource": "azurerm_resource_group.eshop_rg",
+        "Status": "MISSING_IN_AZURE",
+        "ResourceId": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG"
+      }
+    ],
+    "Matches": [
+      {
+        "TerraformResource": "azurerm_container_registry.eshop_acr",
+        "Status": "MATCHED",
+        "ResourceId": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.ContainerRegistry/registries/eshopcleveracr",
+        "AzureResource": "eshopcleveracr"
+      },
+      {
+        "TerraformResource": "azurerm_kubernetes_cluster.eshop_aks",
+        "Status": "MATCHED",
+        "ResourceId": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.ContainerService/managedClusters/eshopcleveraks",
+        "AzureResource": "eshopcleveraks"
+      },
+      {
+        "TerraformResource": "azurerm_mssql_database.eshop_db",
+        "Status": "MATCHED",
+        "ResourceId": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Sql/servers/eshopclever-sqlsrv/databases/eshopdb",
+        "AzureResource": "eshopclever-sqlsrv/eshopdb"
+      },
+      {
+        "TerraformResource": "azurerm_mssql_server.eshop_sql_server",
+        "Status": "MATCHED",
+        "ResourceId": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Sql/servers/eshopclever-sqlsrv",
+        "AzureResource": "eshopclever-sqlsrv"
+      }
+    ],
+    "Orphaned": [
+      {
+        "ResourceId": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Sql/servers/eshopclever-sqlsrv/databases/master",
+        "Type": "Microsoft.Sql/servers/databases",
+        "AzureResource": "eshopclever-sqlsrv/master",
+        "Status": "NOT_IN_TERRAFORM"
+      },
+      {
+        "ResourceId": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Storage/storageAccounts/eshopterraformstate8636",
+        "Type": "Microsoft.Storage/storageAccounts",
+        "AzureResource": "eshopterraformstate8636",
+        "Status": "NOT_IN_TERRAFORM"
+      }
+    ],
+    "TotalTerraformResources": 6
+  },
+  "Action": "analyze",
+  "TerraformResources": [
+    {
+      "Type": "azurerm_container_registry",
+      "Attributes": {
+        "sku": "Basic",
+        "location": "eastus",
+        "id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.ContainerRegistry/registries/eshopcleveracr",
+        "name": "eshopcleveracr",
+        "resource_group_name": "eShopCleverRG"
+      },
+      "Name": "azurerm_container_registry.eshop_acr",
+      "Instance": "eshop_acr"
+    },
+    {
+      "Type": "azurerm_kubernetes_cluster",
+      "Attributes": {
+        "location": "eastus",
+        "id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.ContainerService/managedClusters/eshopcleveraks",
+        "name": "nodepool1",
+        "resource_group_name": "eShopCleverRG"
+      },
+      "Name": "azurerm_kubernetes_cluster.eshop_aks",
+      "Instance": "eshop_aks"
+    },
+    {
+      "Type": "azurerm_mssql_database",
+      "Attributes": {
+        "name": "eshopdb",
+        "id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Sql/servers/eshopclever-sqlsrv/databases/eshopdb"
+      },
+      "Name": "azurerm_mssql_database.eshop_db",
+      "Instance": "eshop_db"
+    },
+    {
+      "Type": "azurerm_mssql_firewall_rule",
+      "Attributes": {
+        "name": "AllowAll",
+        "id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Sql/servers/eshopclever-sqlsrv/firewallRules/AllowAll"
+      },
+      "Name": "azurerm_mssql_firewall_rule.allow_all",
+      "Instance": "allow_all"
+    },
+    {
+      "Type": "azurerm_mssql_server",
+      "Attributes": {
+        "location": "eastus2",
+        "id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Sql/servers/eshopclever-sqlsrv",
+        "name": "eshopclever-sqlsrv",
+        "resource_group_name": "eShopCleverRG"
+      },
+      "Name": "azurerm_mssql_server.eshop_sql_server",
+      "Instance": "eshop_sql_server"
+    },
+    {
+      "Type": "azurerm_resource_group",
+      "Attributes": {
+        "location": "eastus2",
+        "id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG",
+        "name": "eShopCleverRG"
+      },
+      "Name": "azurerm_resource_group.eshop_rg",
+      "Instance": "eshop_rg"
+    }
+  ]
+}

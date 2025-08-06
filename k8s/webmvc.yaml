@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eshop-webmvc
+  namespace: eshop
+  labels:
+    app: eshop-webmvc
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: eshop-webmvc
+  template:
+    metadata:
+      labels:
+        app: eshop-webmvc
+    spec:
+      containers:
+      - name: webmvc
+        image: eshopcleveracr.azurecr.io/eshopwebmvc:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: eshop-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: UseOnlyInMemoryDatabase
+          valueFrom:
+            secretKeyRef:
+              name: eshop-secrets
+              key: UseOnlyInMemoryDatabase
+        - name: ConnectionStrings__CatalogConnection
+          valueFrom:
+            secretKeyRef:
+              name: eshop-secrets
+              key: ConnectionStrings__CatalogConnection
+        - name: ConnectionStrings__IdentityConnection
+          valueFrom:
+            secretKeyRef:
+              name: eshop-secrets
+              key: ConnectionStrings__IdentityConnection
+        - name: baseUrls__webBase
+          valueFrom:
+            configMapKeyRef:
+              name: eshop-config
+              key: baseUrls__webBase
+        - name: baseUrls__apiBase
+          valueFrom:
+            configMapKeyRef:
+              name: eshop-config
+              key: baseUrls__apiBase
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "400m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eshop-webmvc
+  namespace: eshop
+  labels:
+    app: eshop-webmvc
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: eshop-webmvc
