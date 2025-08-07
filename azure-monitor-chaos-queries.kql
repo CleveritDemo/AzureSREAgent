@@ -1,0 +1,145 @@
+# Azure Monitor KQL Queries for Chaos Engineering
+# These queries help you monitor chaos experiments in Azure Portal
+
+# ===== CONTAINER INSIGHTS QUERIES =====
+
+# 1. Pod Restart Events During Chaos Experiments
+KubePodInventory
+| where TimeGenerated > ago(1h)
+| where Namespace == "eshop"
+| where RestartCount > 0
+| summarize RestartEvents = sum(RestartCount) by Name, bin(TimeGenerated, 1m)
+| render timechart
+
+# 2. CPU Utilization During Stress Tests  
+Perf
+| where TimeGenerated > ago(30m)
+| where ObjectName == "K8SContainer"
+| where CounterName == "cpuUsageNanoCores"
+| where InstanceName contains "eshop"
+| summarize AvgCPU = avg(CounterValue) by InstanceName, bin(TimeGenerated, 1m)
+| render timechart
+
+# 3. Memory Usage Patterns
+Perf
+| where TimeGenerated > ago(30m)  
+| where ObjectName == "K8SContainer"
+| where CounterName == "memoryWorkingSetBytes"
+| where InstanceName contains "eshop"
+| summarize AvgMemory = avg(CounterValue) by InstanceName, bin(TimeGenerated, 1m)
+| render timechart
+
+# 4. Network Performance Impact
+Perf
+| where TimeGenerated > ago(30m)
+| where ObjectName == "K8SContainer" 
+| where CounterName in ("networkRxBytes", "networkTxBytes")
+| where InstanceName contains "eshop"
+| summarize NetworkTraffic = avg(CounterValue) by CounterName, bin(TimeGenerated, 1m)
+| render timechart
+
+# 5. Pod State Changes
+KubePodInventory
+| where TimeGenerated > ago(1h)
+| where Namespace == "eshop"
+| summarize count() by PodStatus, bin(TimeGenerated, 1m)
+| render timechart
+
+# 6. Error Rate Monitoring  
+ContainerLog
+| where TimeGenerated > ago(30m)
+| where LogEntry contains "error" or LogEntry contains "exception" or LogEntry contains "fail"
+| where Name contains "eshop"
+| summarize ErrorCount = count() by Name, bin(TimeGenerated, 1m)
+| render timechart
+
+# 7. Application Response Time (from logs)
+ContainerLog
+| where TimeGenerated > ago(30m)
+| where Name contains "eshop-webmvc"
+| where LogEntry matches regex @"(?i)request.*?(\d+\.?\d*)ms"
+| extend ResponseTime = todouble(extract(@"(\d+\.?\d*)ms", 1, LogEntry))
+| where isnotnull(ResponseTime)
+| summarize AvgResponseTime = avg(ResponseTime) by bin(TimeGenerated, 1m)
+| render timechart
+
+# 8. Chaos Experiment Correlation
+KubeEvents
+| where TimeGenerated > ago(1h)
+| where Namespace == "eshop"
+| where Reason in ("Killing", "FailedKillPod", "BackOff", "Unhealthy")
+| summarize ChaosEvents = count() by Reason, bin(TimeGenerated, 1m)
+| render timechart
+
+# 9. Service Availability
+KubePodInventory
+| where TimeGenerated > ago(1h)
+| where Namespace == "eshop"
+| where PodStatus == "Running"
+| summarize RunningPods = dcount(Name) by bin(TimeGenerated, 1m)
+| render timechart
+
+# 10. Resource Utilization Summary
+Perf
+| where TimeGenerated > ago(30m)
+| where ObjectName == "K8SContainer"
+| where InstanceName contains "eshop"
+| where CounterName in ("cpuUsageNanoCores", "memoryWorkingSetBytes")
+| summarize Value = avg(CounterValue) by CounterName, InstanceName
+| evaluate pivot(CounterName, sum(Value))
+
+# ===== APPLICATION INSIGHTS QUERIES (if configured) =====
+
+# 11. Request Rate and Failure Rate
+requests
+| where timestamp > ago(30m)
+| summarize RequestCount = count(), FailureCount = countif(success == false) by bin(timestamp, 1m)
+| extend FailureRate = (FailureCount * 100.0) / RequestCount
+| render timechart
+
+# 12. Dependency Call Performance  
+dependencies
+| where timestamp > ago(30m)
+| summarize AvgDuration = avg(duration), CallCount = count() by name, bin(timestamp, 1m)
+| render timechart
+
+# 13. Exception Tracking
+exceptions
+| where timestamp > ago(30m)
+| summarize ExceptionCount = count() by problemId, bin(timestamp, 1m)
+| render timechart
+
+# ===== USEFUL FILTERS AND PARAMETERS =====
+
+# Time Ranges:
+# - ago(15m)  : Last 15 minutes
+# - ago(1h)   : Last hour  
+# - ago(4h)   : Last 4 hours
+# - ago(1d)   : Last day
+
+# Common Namespaces:
+# - "eshop"        : Your application
+# - "chaos-mesh"   : Chaos engineering tools
+# - "kube-system"  : Kubernetes system
+
+# Pod Name Patterns:
+# - contains "eshop-webmvc"   : Web frontend
+# - contains "eshop-publicapi": API backend
+# - contains "chaos"          : Chaos experiments
+
+# ===== DASHBOARD CREATION TIPS =====
+
+# 1. Create a custom dashboard in Azure Portal
+# 2. Add each query as a separate tile
+# 3. Set auto-refresh to 1-5 minutes
+# 4. Use time range of 30 minutes to 4 hours
+# 5. Pin important metrics for real-time monitoring
+
+# ===== ALERTS CONFIGURATION =====
+
+# Create alerts for:
+# - Pod restart rate > 3 restarts/minute
+# - CPU usage > 80% for 5 minutes
+# - Memory usage > 90% for 5 minutes  
+# - Error rate > 10% for 2 minutes
+# - Response time > 2 seconds for 5 minutes

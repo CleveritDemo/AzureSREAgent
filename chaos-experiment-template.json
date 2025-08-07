@@ -1,0 +1,76 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "experimentName": {
+      "type": "string",
+      "defaultValue": "eshop-pod-failure-experiment"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus"
+    },
+    "aksClusterResourceId": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Chaos/experiments",
+      "apiVersion": "2024-01-01",
+      "name": "[parameters('experimentName')]",
+      "location": "[parameters('location')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "selectors": [
+          {
+            "id": "eshop-selector",
+            "type": "List",
+            "targets": [
+              {
+                "type": "ChaosTarget",
+                "id": "[concat(parameters('aksClusterResourceId'), '/providers/Microsoft.Chaos/targets/Microsoft-AzureKubernetesServiceChaosMesh')]"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "name": "ChaosStep",
+            "branches": [
+              {
+                "name": "ChaosBranch",
+                "actions": [
+                  {
+                    "type": "urn:csci:microsoft:azureKubernetesServiceChaosMesh:podChaos/2.2",
+                    "name": "PodChaosAction",
+                    "parameters": [
+                      {
+                        "key": "jsonSpec",
+                        "value": "{\n  \"mode\": \"one\",\n  \"selector\": {\n    \"namespaces\": [\"eshop\"],\n    \"labelSelectors\": {\n      \"app\": \"webmvc\"\n    }\n  },\n  \"action\": \"pod-failure\",\n  \"duration\": \"60s\"\n}"
+                      }
+                    ],
+                    "duration": "PT5M",
+                    "selectorId": "eshop-selector"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "experimentId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Chaos/experiments', parameters('experimentName'))]"
+    },
+    "principalId": {
+      "type": "string", 
+      "value": "[reference(resourceId('Microsoft.Chaos/experiments', parameters('experimentName')), '2024-01-01', 'full').identity.principalId]"
+    }
+  }
+}

@@ -49,3 +49,22 @@ variable "ssh_public_key" {
   type        = string
   default     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC33ECCPzwTwcnPvlI/ivFIgINIleg8Yxxe8aNHek5fpgr0dVfkNgmIYqP4F7Je9hBsdlIP1EFC/OU7Mepele4dSlEY4DJmSDQUH4BhAN+fGhKmt1k847dZezP0KGSli8LqdvWL3k2s3WsSPkEg4AD1A5jqDsKBUPN60giMJxT0tDvMuo59kVleJWR05NfzshKWvDuBLBaGmsRLcNBY+EnJcNHVU/ufMDifYq9HUOPd5PxTsprlU0uy5MDp0GvYEqhu/cIW48tF8AfIXfDjiI4vlXje2KtJhlZfehQ0FaMUkJPk/1yZqXbNxm5YRwwCOIeUkBLLkZUu+3Yt7KK2YBjR"
 }
+
+# Custom Domain Configuration
+variable "custom_domain_name" {
+  description = "Custom domain name for the application (e.g., eshopclever.com)"
+  type        = string
+  default     = "eshopclever.com"
+}
+
+variable "ingress_ip_address" {
+  description = "IP address of the ingress controller load balancer (set after ingress deployment)"
+  type        = string
+  default     = "0.0.0.0"  # Will be updated after ingress controller deployment
+}
+
+variable "enable_custom_domain" {
+  description = "Whether to create Azure DNS zone and records for custom domain"
+  type        = bool
+  default     = false  # Set to true when ready to configure custom domain
+}
