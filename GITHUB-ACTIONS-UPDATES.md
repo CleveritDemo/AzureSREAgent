@@ -29,28 +29,42 @@ All chaos engineering GitHub Actions workflows have been updated to use the `AZU
 - **Removed**: OIDC-specific permissions and parameters
 - **Added**: Hardcoded subscription ID in environment variables
 
-## Required GitHub Secret
+## Required GitHub Secrets
 
-⚠️ **SECURITY NOTE**: Replace the placeholder values below with your actual service principal credentials. Never commit actual secrets to your repository.
+⚠️ **UPDATED**: Now using OIDC authentication with federated identity credentials for enhanced security.
 
-Ensure this secret is configured in your GitHub repository under **Settings → Secrets and variables → Actions → Environments → dev**:
+Ensure these secrets are configured in your GitHub repository under **Settings → Secrets and variables → Actions → Environments → dev**:
 
 ```
-Secret Name: AZURE_CREDENTIALS
-Secret Value: {
-  "clientId": "YOUR_SERVICE_PRINCIPAL_CLIENT_ID",
-  "clientSecret": "YOUR_SERVICE_PRINCIPAL_CLIENT_SECRET",
-  "subscriptionId": "5f62fee3-b00a-44d2-86e5-5cf130b28b5d",
-  "tenantId": "1033d128-85ad-47b4-8c85-0a28b6ce0297"
-}
+Secret Name: AZURE_CLIENT_ID
+Secret Value: 17eaa6dd-7c38-40e6-ae28-a0c55d421cbd
+
+Secret Name: AZURE_TENANT_ID  
+Secret Value: 1033d128-85ad-47b4-8c85-0a28b6ce0297
+
+Secret Name: AZURE_SUBSCRIPTION_ID
+Secret Value: 5f62fee3-b00a-44d2-86e5-5cf130b28b5d
 ```
+
+### ✅ Federated Identity Credentials Configured
+- **Federated Credential ID**: `0fd0ff53-bfec-46b6-a5fd-d9a823d56ff3`
+- **Name**: `github-actions-eshop-dev`
+- **Subject**: `repo:CleveritDemo/AzureSREAgent:environment:dev`
+- **Issuer**: `https://token.actions.githubusercontent.com`
+
+**Security Benefits**:
+- ✅ No client secrets stored in GitHub
+- ✅ Automatic token rotation
+- ✅ Scoped to specific repository and environment
+- ✅ Industry best practice for CI/CD authentication
 
 ## Key Improvements
 
 ### 🔧 **Authentication Consistency**
-- All workflows now use the same authentication method
-- Single secret to manage instead of multiple individual secrets
-- Simplified troubleshooting and maintenance
+- All workflows now use OIDC authentication with federated identity credentials
+- Three individual secrets (client-id, tenant-id, subscription-id) instead of one combined secret
+- Enhanced security with no client secrets stored in GitHub
+- Automatic token rotation and scoped access
 
 ### 🛠️ **Fixed Extension Issues**
 - Removed attempts to install non-existent `chaos` extension
@@ -58,7 +72,10 @@ Secret Value: {
 - Added verification steps to confirm Azure CLI and Chaos Studio access
 
 ### 🔒 **Security & Reliability**
-- Client secret authentication is more reliable than OIDC for current setup
+- OIDC authentication with federated identity credentials (most secure method)
+- No client secrets stored in GitHub Secrets
+- Automatic token rotation and expiration
+- Scoped access to specific repository and environment
 - Hardcoded subscription IDs prevent configuration errors
 - Proper error handling and verification steps
 
