@@ -47,7 +47,7 @@ resource "azurerm_chaos_studio_experiment" "pod_failure" {
             selector = {
               namespaces = ["eshop"]  # Match existing namespace
               labelSelectors = {
-                "app" = "webmvc"  # Match existing label
+                "app" = "eshop-webmvc"  # Corrected to match actual pod labels
               }
             }
           })
@@ -88,7 +88,7 @@ resource "azurerm_chaos_studio_experiment" "cpu_stress" {
             selector = {
               namespaces = ["eshop"]  # Match existing namespace
               labelSelectors = {
-                "app" = "webmvc"  # Match existing label
+                "app" = "eshop-webmvc"  # Corrected to match actual pod labels
               }
             }
             stressors = {
@@ -136,7 +136,7 @@ resource "azurerm_chaos_studio_experiment" "network_delay" {
             selector = {
               namespaces = ["eshop"]  # Match existing namespace
               labelSelectors = {
-                "app" = "webmvc"  # Match existing label
+                "app" = "eshop-webmvc"  # Corrected to match actual pod labels
               }
             }
             delay = {
@@ -182,7 +182,7 @@ resource "azurerm_chaos_studio_experiment" "memory_stress" {
             selector = {
               namespaces = ["eshop"]  # Match existing namespace
               labelSelectors = {
-                "app" = "publicapi"  # Match existing label
+                "app" = "eshop-publicapi"  # Corrected to match actual pod labels
               }
             }
             stressors = {
