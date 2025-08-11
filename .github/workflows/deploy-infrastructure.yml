@@ -1,0 +1,98 @@
+name: Deploy Infrastructure and Applications
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'terraform-export-clean/**'
+      - 'src/**'
+      - '.github/workflows/deploy-infrastructure.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'terraform-export-clean/**'
+      - 'src/**'
+  workflow_dispatch:
+
+env:
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  TERRAFORM_WORKING_DIR: ./terraform-export-clean
+
+jobs:
+  deploy:
+    name: Deploy to Azure
+    runs-on: ubuntu-latest
+    environment: dev
+    
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Azure Login using OIDC
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "~1.0"
+
+    - name: Terraform Init
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: terraform init
+
+    - name: Terraform Plan
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: terraform plan -out=tfplan
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: terraform apply -auto-approve tfplan
+
+    - name: Get ACR Login Server
+      id: acr-info
+      run: |
+        ACR_NAME=$(az acr list --resource-group eShopCleverRG --query '[0].name' -o tsv)
+        ACR_LOGIN_SERVER=$(az acr list --resource-group eShopCleverRG --query '[0].loginServer' -o tsv)
+        echo "acr_name=$ACR_NAME" >> $GITHUB_OUTPUT
+        echo "acr_login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
+
+    - name: Login to Azure Container Registry
+      run: |
+        az acr login --name ${{ steps.acr-info.outputs.acr_name }}
+
+    - name: Build and Push Docker Images
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        # Build and push WebMVC image
+        if [ -d "./src/Web" ]; then
+          docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/eshop-webmvc:${{ github.sha }} ./src/Web
+          docker push ${{ steps.acr-info.outputs.acr_login_server }}/eshop-webmvc:${{ github.sha }}
+        fi
+        
+        # Build and push PublicApi image  
+        if [ -d "./src/PublicApi" ]; then
+          docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/eshop-publicapi:${{ github.sha }} ./src/PublicApi
+          docker push ${{ steps.acr-info.outputs.acr_login_server }}/eshop-publicapi:${{ github.sha }}
+        fi
+
+    - name: Deploy to AKS
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        # Get AKS credentials
+        az aks get-credentials --resource-group eShopCleverRG --name eshopcleveraks --overwrite-existing
+        
+        # Apply Kubernetes manifests if they exist
+        if [ -d "./k8s" ]; then
+          kubectl apply -f ./k8s/
+        fi

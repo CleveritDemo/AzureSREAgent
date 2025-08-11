@@ -1,0 +1,220 @@
+name: Manual Chaos Experiment Trigger
+
+on:
+  workflow_dispatch:
+    inputs:
+      experiment:
+        description: 'Select chaos experiment to run'
+        required: true
+        type: choice
+        options:
+          - 'Pod Failure (eshoppodfailure)'
+          - 'CPU Stress (eshopcpustress)'
+          - 'Network Delay (eshopnetworkdelay)'
+          - 'Memory Stress (eshopmemorystress)'
+      monitor_duration:
+        description: 'Monitoring duration in minutes'
+        required: false
+        default: '10'
+        type: string
+      notify_teams:
+        description: 'Send Teams notification'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  run-chaos-experiment:
+    name: Execute Selected Chaos Experiment
+    runs-on: ubuntu-latest
+    environment: dev
+    
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Install Azure CLI Extensions
+      run: |
+        az extension add --name chaos --yes
+        az extension add --name monitor-control-service --yes
+
+    - name: Parse Experiment Selection
+      id: parse-experiment
+      run: |
+        case "${{ github.event.inputs.experiment }}" in
+          "Pod Failure (eshoppodfailure)")
+            echo "experiment_name=eshoppodfailure" >> $GITHUB_OUTPUT
+            echo "experiment_display=Pod Failure" >> $GITHUB_OUTPUT
+            ;;
+          "CPU Stress (eshopcpustress)")
+            echo "experiment_name=eshopcpustress" >> $GITHUB_OUTPUT
+            echo "experiment_display=CPU Stress" >> $GITHUB_OUTPUT
+            ;;
+          "Network Delay (eshopnetworkdelay)")
+            echo "experiment_name=eshopnetworkdelay" >> $GITHUB_OUTPUT
+            echo "experiment_display=Network Delay" >> $GITHUB_OUTPUT
+            ;;
+          "Memory Stress (eshopmemorystress)")
+            echo "experiment_name=eshopmemorystress" >> $GITHUB_OUTPUT
+            echo "experiment_display=Memory Stress" >> $GITHUB_OUTPUT
+            ;;
+        esac
+
+    - name: Pre-experiment System Check
+      run: |
+        echo "🔍 Performing pre-experiment system check..."
+        
+        # Check AKS cluster status
+        AKS_STATUS=$(az aks show --resource-group eShopCleverRG --name eshopcleveraks --query "provisioningState" -o tsv)
+        echo "AKS Cluster Status: $AKS_STATUS"
+        
+        # Check pod status
+        az aks get-credentials --resource-group eShopCleverRG --name eshopcleveraks --overwrite-existing
+        echo "Current pods in eshop namespace:"
+        kubectl get pods -n eshop 2>/dev/null || echo "eshop namespace not found, checking default namespace:"
+        kubectl get pods -n default
+        
+        # Check chaos studio target
+        CHAOS_TARGET=$(az rest --method GET \
+          --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.ContainerService/managedClusters/eshopcleveraks/providers/Microsoft.Chaos/targets/Microsoft-AzureKubernetesServiceChaosMesh?api-version=2023-11-01" \
+          --query "name" -o tsv)
+        echo "Chaos Studio Target: $CHAOS_TARGET"
+
+    - name: Execute Chaos Experiment
+      id: run-experiment
+      run: |
+        experiment_name="${{ steps.parse-experiment.outputs.experiment_name }}"
+        experiment_display="${{ steps.parse-experiment.outputs.experiment_display }}"
+        
+        echo "🔥 Starting $experiment_display Chaos Experiment..."
+        echo "Experiment: $experiment_name"
+        
+        # Start the experiment
+        START_RESULT=$(az rest --method POST \
+          --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/start?api-version=2023-11-01" \
+          --headers Content-Type=application/json \
+          --body '{}')
+        
+        echo "Start result: $START_RESULT"
+        
+        # Extract execution ID
+        EXECUTION_ID=$(echo $START_RESULT | jq -r '.name')
+        echo "execution_id=$EXECUTION_ID" >> $GITHUB_OUTPUT
+        echo "Execution ID: $EXECUTION_ID"
+        
+        # Initial delay
+        echo "Waiting 30 seconds for experiment to initialize..."
+        sleep 30
+
+    - name: Monitor Experiment Progress
+      run: |
+        experiment_name="${{ steps.parse-experiment.outputs.experiment_name }}"
+        execution_id="${{ steps.run-experiment.outputs.execution_id }}"
+        monitor_duration="${{ github.event.inputs.monitor_duration }}"
+        
+        echo "📊 Monitoring experiment progress for $monitor_duration minutes..."
+        
+        timeout_seconds=$((monitor_duration * 60))
+        start_time=$(date +%s)
+        check_count=0
+        
+        while true; do
+          current_time=$(date +%s)
+          elapsed=$((current_time - start_time))
+          check_count=$((check_count + 1))
+          
+          if [ $elapsed -ge $timeout_seconds ]; then
+            echo "⏰ Monitoring timeout reached ($monitor_duration minutes)"
+            break
+          fi
+          
+          # Get experiment status
+          STATUS_RESPONSE=$(az rest --method GET \
+            --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/executions/$execution_id?api-version=2023-11-01" \
+            2>/dev/null)
+          
+          if [ $? -eq 0 ]; then
+            STATUS=$(echo $STATUS_RESPONSE | jq -r '.properties.status')
+            START_TIME=$(echo $STATUS_RESPONSE | jq -r '.properties.startedAt')
+            STOP_TIME=$(echo $STATUS_RESPONSE | jq -r '.properties.stoppedAt')
+            
+            echo "Check #$check_count - Status: $STATUS (Elapsed: ${elapsed}s)"
+            
+            if [ "$STATUS" = "Success" ]; then
+              echo "✅ Experiment completed successfully!"
+              echo "Start time: $START_TIME"
+              echo "Stop time: $STOP_TIME"
+              break
+            elif [ "$STATUS" = "Failed" ]; then
+              echo "❌ Experiment failed!"
+              echo "Start time: $START_TIME"
+              echo "Stop time: $STOP_TIME"
+              break
+            elif [ "$STATUS" = "Cancelled" ]; then
+              echo "⚠️ Experiment was cancelled!"
+              break
+            fi
+          else
+            echo "Check #$check_count - Unable to get status (experiment may still be running)"
+          fi
+          
+          # Check pods during experiment
+          echo "Current pod status:"
+          kubectl get pods -n eshop 2>/dev/null || kubectl get pods -n default | head -10
+          
+          sleep 30
+        done
+
+    - name: Post-experiment Analysis
+      if: always()
+      run: |
+        experiment_name="${{ steps.parse-experiment.outputs.experiment_name }}"
+        execution_id="${{ steps.run-experiment.outputs.execution_id }}"
+        
+        echo "🔍 Post-experiment analysis..."
+        
+        # Get final experiment details
+        FINAL_STATUS=$(az rest --method GET \
+          --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/executions/$execution_id?api-version=2023-11-01" \
+          2>/dev/null)
+        
+        if [ $? -eq 0 ]; then
+          echo "Final experiment details:"
+          echo $FINAL_STATUS | jq '.properties'
+        fi
+        
+        # Check system recovery
+        echo "System recovery check:"
+        kubectl get pods -n eshop 2>/dev/null || kubectl get pods -n default
+        
+        # Get recent experiment history
+        echo "Recent experiment history:"
+        az rest --method GET \
+          --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/executions?api-version=2023-11-01" \
+          --query "value[0:5].{name:name,status:properties.status,startedAt:properties.startedAt,stoppedAt:properties.stoppedAt}" \
+          -o table
+
+    - name: Generate Summary Report
+      if: always()
+      run: |
+        echo "📋 CHAOS EXPERIMENT SUMMARY REPORT"
+        echo "=================================="
+        echo "Experiment: ${{ steps.parse-experiment.outputs.experiment_display }}"
+        echo "Started by: ${{ github.actor }}"
+        echo "Workflow run: ${{ github.run_id }}"
+        echo "Monitoring duration: ${{ github.event.inputs.monitor_duration }} minutes"
+        echo "Execution ID: ${{ steps.run-experiment.outputs.execution_id }}"
+        echo ""
+        echo "For detailed logs, check the Azure Portal:"
+        echo "https://portal.azure.com/#@cleveritgroup.onmicrosoft.com/resource/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/${{ steps.parse-experiment.outputs.experiment_name }}/overview"

@@ -1,0 +1,196 @@
+name: Chaos Engineering Automation
+
+on:
+  schedule:
+    # Run chaos experiments every day at 10:00 AM UTC (adjust as needed)
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+    inputs:
+      experiment_name:
+        description: 'Chaos experiment to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - pod-failure
+          - cpu-stress
+          - network-delay
+          - memory-stress
+      duration_minutes:
+        description: 'Duration to run experiment (minutes)'
+        required: false
+        default: '5'
+        type: string
+
+env:
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  RESOURCE_GROUP: eShopCleverRG
+
+jobs:
+  chaos-experiments:
+    name: Execute Chaos Experiments
+    runs-on: ubuntu-latest
+    environment: dev
+    
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Azure Login using OIDC
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Install Azure CLI Chaos Extension
+      run: |
+        az extension add --name chaos --yes
+
+    - name: Get Chaos Experiments
+      id: experiments
+      run: |
+        experiments=$(az rest --method GET --url "https://management.azure.com/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Chaos/experiments?api-version=2023-11-01" --query "value[].{name:name,id:id}" -o json)
+        echo "experiments=$experiments" >> $GITHUB_OUTPUT
+
+    - name: Run Pod Failure Experiment
+      if: ${{ github.event.inputs.experiment_name == 'pod-failure' || github.event.inputs.experiment_name == 'all' || github.event_name == 'schedule' }}
+      run: |
+        echo "🔥 Starting Pod Failure Chaos Experiment..."
+        
+        # Start the experiment
+        START_RESULT=$(az rest --method POST \
+          --url "https://management.azure.com/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Chaos/experiments/eshoppodfailure/start?api-version=2023-11-01" \
+          --headers Content-Type=application/json \
+          --body '{}')
+        
+        echo "Experiment started: $START_RESULT"
+        
+        # Monitor experiment status
+        EXECUTION_ID=$(echo $START_RESULT | jq -r '.name')
+        echo "Execution ID: $EXECUTION_ID"
+        
+        # Wait for experiment to complete (with timeout)
+        timeout_minutes=${{ github.event.inputs.duration_minutes || '10' }}
+        timeout_seconds=$((timeout_minutes * 60))
+        
+        echo "Monitoring experiment for $timeout_minutes minutes..."
+        start_time=$(date +%s)
+        
+        while true; do
+          current_time=$(date +%s)
+          elapsed=$((current_time - start_time))
+          
+          if [ $elapsed -ge $timeout_seconds ]; then
+            echo "⏰ Timeout reached, stopping monitoring"
+            break
+          fi
+          
+          STATUS=$(az rest --method GET \
+            --url "https://management.azure.com/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Chaos/experiments/eshoppodfailure/executions/$EXECUTION_ID?api-version=2023-11-01" \
+            --query "properties.status" -o tsv 2>/dev/null || echo "Running")
+          
+          echo "Current status: $STATUS"
+          
+          if [ "$STATUS" = "Success" ] || [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ]; then
+            echo "✅ Experiment completed with status: $STATUS"
+            break
+          fi
+          
+          sleep 30
+        done
+
+    - name: Run CPU Stress Experiment
+      if: ${{ github.event.inputs.experiment_name == 'cpu-stress' || github.event.inputs.experiment_name == 'all' || github.event_name == 'schedule' }}
+      run: |
+        echo "🔥 Starting CPU Stress Chaos Experiment..."
+        
+        START_RESULT=$(az rest --method POST \
+          --url "https://management.azure.com/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Chaos/experiments/eshopcpustress/start?api-version=2023-11-01" \
+          --headers Content-Type=application/json \
+          --body '{}')
+        
+        echo "CPU Stress experiment started: $START_RESULT"
+        
+        # Brief monitoring
+        sleep 60
+        EXECUTION_ID=$(echo $START_RESULT | jq -r '.name')
+        STATUS=$(az rest --method GET \
+          --url "https://management.azure.com/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Chaos/experiments/eshopcpustress/executions/$EXECUTION_ID?api-version=2023-11-01" \
+          --query "properties.status" -o tsv 2>/dev/null || echo "Running")
+        
+        echo "CPU Stress experiment status: $STATUS"
+
+    - name: Run Network Delay Experiment
+      if: ${{ github.event.inputs.experiment_name == 'network-delay' || github.event.inputs.experiment_name == 'all' || github.event_name == 'schedule' }}
+      run: |
+        echo "🔥 Starting Network Delay Chaos Experiment..."
+        
+        START_RESULT=$(az rest --method POST \
+          --url "https://management.azure.com/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Chaos/experiments/eshopnetworkdelay/start?api-version=2023-11-01" \
+          --headers Content-Type=application/json \
+          --body '{}')
+        
+        echo "Network Delay experiment started: $START_RESULT"
+        
+        # Brief monitoring
+        sleep 60
+        EXECUTION_ID=$(echo $START_RESULT | jq -r '.name')
+        STATUS=$(az rest --method GET \
+          --url "https://management.azure.com/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Chaos/experiments/eshopnetworkdelay/executions/$EXECUTION_ID?api-version=2023-11-01" \
+          --query "properties.status" -o tsv 2>/dev/null || echo "Running")
+        
+        echo "Network Delay experiment status: $STATUS"
+
+    - name: Run Memory Stress Experiment
+      if: ${{ github.event.inputs.experiment_name == 'memory-stress' || github.event.inputs.experiment_name == 'all' || github.event_name == 'schedule' }}
+      run: |
+        echo "🔥 Starting Memory Stress Chaos Experiment..."
+        
+        START_RESULT=$(az rest --method POST \
+          --url "https://management.azure.com/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Chaos/experiments/eshopmemorystress/start?api-version=2023-11-01" \
+          --headers Content-Type=application/json \
+          --body '{}')
+        
+        echo "Memory Stress experiment started: $START_RESULT"
+        
+        # Brief monitoring
+        sleep 60
+        EXECUTION_ID=$(echo $START_RESULT | jq -r '.name')
+        STATUS=$(az rest --method GET \
+          --url "https://management.azure.com/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Chaos/experiments/eshopmemorystress/executions/$EXECUTION_ID?api-version=2023-11-01" \
+          --query "properties.status" -o tsv 2>/dev/null || echo "Running")
+        
+        echo "Memory Stress experiment status: $STATUS"
+
+    - name: Collect Experiment Results
+      if: always()
+      run: |
+        echo "📊 Collecting Chaos Experiment Results..."
+        
+        # Get recent executions for all experiments
+        for experiment in eshoppodfailure eshopcpustress eshopnetworkdelay eshopmemorystress; do
+          echo "--- Results for $experiment ---"
+          
+          EXECUTIONS=$(az rest --method GET \
+            --url "https://management.azure.com/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Chaos/experiments/$experiment/executions?api-version=2023-11-01" \
+            --query "value[0:3].{name:name,status:properties.status,startedAt:properties.startedAt,stoppedAt:properties.stoppedAt}" -o table)
+          
+          echo "$EXECUTIONS"
+          echo ""
+        done
+
+    - name: Send Notification
+      if: always()
+      run: |
+        echo "📢 Chaos experiments execution completed!"
+        echo "Check the logs above for detailed results."
+        echo "Experiment type: ${{ github.event.inputs.experiment_name || 'scheduled-all' }}"
+        echo "Duration: ${{ github.event.inputs.duration_minutes || 'default' }} minutes"

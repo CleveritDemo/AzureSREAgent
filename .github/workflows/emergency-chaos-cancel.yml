@@ -1,0 +1,229 @@
+name: Emergency Chaos Experiment Cancellation
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Emergency Action'
+        required: true
+        type: choice
+        options:
+          - 'Cancel All Running Experiments'
+          - 'Get Status of All Experiments'
+          - 'Force Cancel Specific Experiment'
+      specific_experiment:
+        description: 'Specific experiment name (for force cancel)'
+        required: false
+        type: string
+      reason:
+        description: 'Reason for cancellation'
+        required: false
+        type: string
+
+jobs:
+  emergency-action:
+    name: Emergency Chaos Management
+    runs-on: ubuntu-latest
+    environment: dev
+    
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Install Azure CLI Extensions
+      run: |
+        az extension add --name chaos --yes
+
+    - name: Emergency Action - Get All Experiment Status
+      if: github.event.inputs.action == 'Get Status of All Experiments'
+      run: |
+        echo "🔍 Getting status of all chaos experiments..."
+        
+        experiments=("eshoppodfailure" "eshopcpustress" "eshopnetworkdelay" "eshopmemorystress")
+        
+        for experiment in "${experiments[@]}"; do
+          echo ""
+          echo "📊 Experiment: $experiment"
+          echo "----------------------------------------"
+          
+          # Get latest executions
+          EXECUTIONS=$(az rest --method GET \
+            --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment/executions?api-version=2023-11-01" \
+            --query "value[0:3]" 2>/dev/null)
+          
+          if [ $? -eq 0 ] && [ "$EXECUTIONS" != "null" ] && [ "$EXECUTIONS" != "[]" ]; then
+            echo "Recent executions:"
+            echo $EXECUTIONS | jq -r '.[] | "\(.name) - \(.properties.status) (Started: \(.properties.startedAt // "N/A"))"'
+          else
+            echo "No recent executions found"
+          fi
+        done
+
+    - name: Emergency Action - Cancel All Running Experiments
+      if: github.event.inputs.action == 'Cancel All Running Experiments'
+      run: |
+        echo "🚨 EMERGENCY: Cancelling all running chaos experiments..."
+        echo "Reason: ${{ github.event.inputs.reason }}"
+        echo "Initiated by: ${{ github.actor }}"
+        
+        experiments=("eshoppodfailure" "eshopcpustress" "eshopnetworkdelay" "eshopmemorystress")
+        cancelled_count=0
+        
+        for experiment in "${experiments[@]}"; do
+          echo ""
+          echo "🔍 Checking experiment: $experiment"
+          
+          # Get latest execution
+          LATEST_EXECUTION=$(az rest --method GET \
+            --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment/executions?api-version=2023-11-01" \
+            --query "value[0]" 2>/dev/null)
+          
+          if [ $? -eq 0 ] && [ "$LATEST_EXECUTION" != "null" ]; then
+            STATUS=$(echo $LATEST_EXECUTION | jq -r '.properties.status')
+            EXECUTION_ID=$(echo $LATEST_EXECUTION | jq -r '.name')
+            
+            echo "Latest execution: $EXECUTION_ID"
+            echo "Status: $STATUS"
+            
+            if [ "$STATUS" = "Running" ] || [ "$STATUS" = "Executing" ]; then
+              echo "🛑 Cancelling running experiment..."
+              
+              CANCEL_RESULT=$(az rest --method POST \
+                --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment/cancel?api-version=2023-11-01" \
+                --headers Content-Type=application/json \
+                --body '{}' 2>/dev/null)
+              
+              if [ $? -eq 0 ]; then
+                echo "✅ Cancellation request sent successfully"
+                cancelled_count=$((cancelled_count + 1))
+              else
+                echo "❌ Failed to send cancellation request"
+              fi
+            else
+              echo "ℹ️ No running experiment to cancel"
+            fi
+          else
+            echo "ℹ️ No executions found"
+          fi
+        done
+        
+        echo ""
+        echo "📊 EMERGENCY ACTION SUMMARY"
+        echo "Total experiments checked: ${#experiments[@]}"
+        echo "Cancellation requests sent: $cancelled_count"
+        
+        if [ $cancelled_count -gt 0 ]; then
+          echo ""
+          echo "⏳ Waiting 30 seconds for cancellations to process..."
+          sleep 30
+          
+          echo "🔍 Verifying cancellation results..."
+          for experiment in "${experiments[@]}"; do
+            LATEST_EXECUTION=$(az rest --method GET \
+              --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment/executions?api-version=2023-11-01" \
+              --query "value[0]" 2>/dev/null)
+            
+            if [ $? -eq 0 ] && [ "$LATEST_EXECUTION" != "null" ]; then
+              STATUS=$(echo $LATEST_EXECUTION | jq -r '.properties.status')
+              echo "$experiment: $STATUS"
+            fi
+          done
+        fi
+
+    - name: Emergency Action - Force Cancel Specific Experiment
+      if: github.event.inputs.action == 'Force Cancel Specific Experiment'
+      run: |
+        experiment_name="${{ github.event.inputs.specific_experiment }}"
+        
+        if [ -z "$experiment_name" ]; then
+          echo "❌ ERROR: No specific experiment name provided"
+          exit 1
+        fi
+        
+        echo "🚨 FORCE CANCELLING experiment: $experiment_name"
+        echo "Reason: ${{ github.event.inputs.reason }}"
+        echo "Initiated by: ${{ github.actor }}"
+        
+        # Get current executions
+        echo "🔍 Getting current executions..."
+        EXECUTIONS=$(az rest --method GET \
+          --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/executions?api-version=2023-11-01" \
+          --query "value[0:5]" 2>/dev/null)
+        
+        if [ $? -eq 0 ] && [ "$EXECUTIONS" != "null" ] && [ "$EXECUTIONS" != "[]" ]; then
+          echo "Current executions:"
+          echo $EXECUTIONS | jq -r '.[] | "\(.name) - \(.properties.status)"'
+          
+          # Cancel all running executions
+          echo $EXECUTIONS | jq -r '.[] | select(.properties.status == "Running" or .properties.status == "Executing") | .name' | while read execution_id; do
+            if [ -n "$execution_id" ]; then
+              echo "🛑 Force cancelling execution: $execution_id"
+              
+              az rest --method POST \
+                --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/cancel?api-version=2023-11-01" \
+                --headers Content-Type=application/json \
+                --body '{}' 2>/dev/null
+              
+              if [ $? -eq 0 ]; then
+                echo "✅ Cancellation request sent for $execution_id"
+              else
+                echo "❌ Failed to cancel $execution_id"
+              fi
+            fi
+          done
+        else
+          echo "ℹ️ No executions found for experiment: $experiment_name"
+        fi
+
+    - name: System Recovery Check
+      if: always()
+      run: |
+        echo "🔍 Performing system recovery check..."
+        
+        # Check AKS cluster
+        echo "AKS Cluster status:"
+        az aks show --resource-group eShopCleverRG --name eshopcleveraks --query "{name:name,status:provisioningState,version:kubernetesVersion}" -o table
+        
+        # Check pods
+        echo ""
+        echo "Pod status check:"
+        az aks get-credentials --resource-group eShopCleverRG --name eshopcleveraks --overwrite-existing
+        kubectl get pods -n eshop 2>/dev/null || kubectl get pods -n default
+        
+        echo ""
+        echo "🏥 Recovery recommendations:"
+        echo "1. Monitor application metrics for next 10-15 minutes"
+        echo "2. Check pod restart counts for abnormal values"
+        echo "3. Verify application endpoints are responding"
+        echo "4. Review chaos experiment logs for any lasting effects"
+
+    - name: Notification Summary
+      if: always()
+      run: |
+        echo "📢 EMERGENCY ACTION COMPLETED"
+        echo "=============================="
+        echo "Action: ${{ github.event.inputs.action }}"
+        echo "Initiated by: ${{ github.actor }}"
+        echo "Workflow run: ${{ github.run_id }}"
+        echo "Timestamp: $(date -u)"
+        
+        if [ -n "${{ github.event.inputs.reason }}" ]; then
+          echo "Reason: ${{ github.event.inputs.reason }}"
+        fi
+        
+        echo ""
+        echo "🔗 Monitor ongoing status:"
+        echo "Azure Portal: https://portal.azure.com/#@cleveritgroup.onmicrosoft.com/resource/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments"
+        echo ""
+        echo "✅ Emergency action workflow completed"
