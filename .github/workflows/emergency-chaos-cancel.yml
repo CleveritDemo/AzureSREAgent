@@ -27,7 +27,6 @@ jobs:
     environment: dev
     
     permissions:
-      id-token: write
       contents: read
 
     steps:
@@ -37,13 +36,21 @@ jobs:
     - name: Azure Login
       uses: azure/login@v1
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Install Azure CLI Extensions
+    - name: Verify Azure CLI and Chaos Studio Access
       run: |
-        az extension add --name chaos --yes
+        # Verify Azure CLI is working
+        echo "Azure CLI version:"
+        az version --output table
+        
+        # Verify access to chaos experiments
+        echo "Verifying access to Chaos Studio experiments..."
+        az rest --method GET \
+          --url "https://management.azure.com/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments?api-version=2023-11-01" \
+          --query "value[].name" -o tsv || echo "Unable to access chaos experiments - will try during execution"
+        
+        echo "✅ Azure CLI setup complete"
 
     - name: Emergency Action - Get All Experiment Status
       if: github.event.inputs.action == 'Get Status of All Experiments'

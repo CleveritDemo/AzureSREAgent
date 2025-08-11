@@ -5,7 +5,7 @@
 Please run the following command to add federated credentials to the existing service principal:
 
 ```bash
-az ad app federated-credential create --id 17eaa6dd-7c38-40e6-ae28-a0c55d421cbd --parameters '{
+az ad app federated-credential create --id YOUR_SERVICE_PRINCIPAL_CLIENT_ID --parameters '{
   "name": "github-actions-eshop-dev",
   "issuer": "https://token.actions.githubusercontent.com",
   "subject": "repo:CleveritDemo/AzureSREAgent:environment:dev",
