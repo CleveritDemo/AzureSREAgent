@@ -94,7 +94,7 @@ jobs:
         
         # Check chaos studio target
         CHAOS_TARGET=$(az rest --method GET \
-          --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.ContainerService/managedClusters/eshopcleveraks/providers/Microsoft.Chaos/targets/Microsoft-AzureKubernetesServiceChaosMesh?api-version=2023-11-01" \
+          --url "https://management.azure.com/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.ContainerService/managedClusters/eshopcleveraks/providers/Microsoft.Chaos/targets/Microsoft-AzureKubernetesServiceChaosMesh?api-version=2023-11-01" \
           --query "name" -o tsv)
         echo "Chaos Studio Target: $CHAOS_TARGET"
 
@@ -109,7 +109,7 @@ jobs:
         
         # Start the experiment
         START_RESULT=$(az rest --method POST \
-          --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/start?api-version=2023-11-01" \
+          --url "https://management.azure.com/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/start?api-version=2023-11-01" \
           --headers Content-Type=application/json \
           --body '{}')
         
@@ -148,7 +148,7 @@ jobs:
           
           # Get experiment status
           STATUS_RESPONSE=$(az rest --method GET \
-            --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/executions/$execution_id?api-version=2023-11-01" \
+            --url "https://management.azure.com/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/executions/$execution_id?api-version=2023-11-01" \
             2>/dev/null)
           
           if [ $? -eq 0 ]; then
@@ -193,7 +193,7 @@ jobs:
         
         # Get final experiment details
         FINAL_STATUS=$(az rest --method GET \
-          --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/executions/$execution_id?api-version=2023-11-01" \
+          --url "https://management.azure.com/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/executions/$execution_id?api-version=2023-11-01" \
           2>/dev/null)
         
         if [ $? -eq 0 ]; then
@@ -208,7 +208,7 @@ jobs:
         # Get recent experiment history
         echo "Recent experiment history:"
         az rest --method GET \
-          --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/executions?api-version=2023-11-01" \
+          --url "https://management.azure.com/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/$experiment_name/executions?api-version=2023-11-01" \
           --query "value[0:5].{name:name,status:properties.status,startedAt:properties.startedAt,stoppedAt:properties.stoppedAt}" \
           -o table
 
@@ -224,4 +224,4 @@ jobs:
         echo "Execution ID: ${{ steps.run-experiment.outputs.execution_id }}"
         echo ""
         echo "For detailed logs, check the Azure Portal:"
-        echo "https://portal.azure.com/#@cleveritgroup.onmicrosoft.com/resource/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/${{ steps.parse-experiment.outputs.experiment_name }}/overview"
+        echo "https://portal.azure.com/#@cleveritgroup.onmicrosoft.com/resource/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/${{ steps.parse-experiment.outputs.experiment_name }}/overview"
