@@ -161,11 +161,60 @@ jobs:
         
         # Check if backend-dev.conf exists and use it
         if [ -f "backend-dev.conf" ]; then
-          echo "Using backend-dev.conf for development environment"
-          terraform init -backend-config="backend-dev.conf"
+          echo "✅ Found backend-dev.conf, checking content:"
+          cat backend-dev.conf
+          echo ""
+          
+          # Create a temporary backend config with the main state key (same as your local setup)
+          echo "🔄 Creating backend config for main state (same as local)..."
+          cat > backend-main.conf <<EOF
+        resource_group_name  = "eShopCleverRG"
+        storage_account_name = "eshopterraformstate8636"
+        container_name       = "tfstate"
+        key                  = "terraform.tfstate"
+        EOF
+          
+          echo "✅ Using main state key to match your local setup:"
+          cat backend-main.conf
+          echo ""
+          
+          terraform init -backend-config="backend-main.conf"
         else
-          echo "backend-dev.conf not found, using default backend"
+          echo "❌ backend-dev.conf not found, using default backend"
           terraform init
+        fi
+        
+        echo ""
+        echo "🔍 Checking current state resources:"
+        terraform state list || echo "No resources in state"
+
+    - name: Check State and Resources
+      run: |
+        echo "📊 Checking current Terraform state..."
+        
+        # Check if state has resources
+        RESOURCE_COUNT=$(terraform state list 2>/dev/null | wc -l)
+        echo "Current state has $RESOURCE_COUNT resources"
+        
+        if [ "$RESOURCE_COUNT" -eq 0 ]; then
+          echo "⚠️ State appears to be empty - this might be a new workspace"
+          echo "🔍 Checking if resources exist in Azure..."
+          
+          # Check if the resource group exists
+          if az group show --name "eShopCleverRG" >/dev/null 2>&1; then
+            echo "✅ Resource group 'eShopCleverRG' exists in Azure"
+            echo "💡 You may need to import existing resources or use the correct state file"
+            echo ""
+            echo "🔄 Options to consider:"
+            echo "1. Import existing resources: terraform import azurerm_resource_group.eshop_rg /subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG"
+            echo "2. Check if you're using the correct backend configuration"
+            echo "3. Verify the state file path in your backend config"
+          else
+            echo "ℹ️ Resource group doesn't exist - this appears to be a fresh deployment"
+          fi
+        else
+          echo "✅ State contains $RESOURCE_COUNT resources - looks good!"
+          terraform state list
         fi
 
     - name: Terraform Validate
