@@ -17,6 +17,7 @@ on:
         required: false
         type: string
 
+# Permisos necesarios para OIDC
 permissions:
   id-token: write
   contents: read
@@ -48,40 +49,88 @@ jobs:
     - name: 'Debug Azure Secrets'
       run: |
         echo "🔍 Debugging Azure secrets..."
+        echo "=================================="
         
-        # Verificar que los secrets existen
-        if [ -z "${{ secrets.AZURE_CREDENTIALS }}" ]; then
-          echo "❌ AZURE_CREDENTIALS is EMPTY or not set"
+        # Mostrar información detallada de cada secret
+        echo "AZURE_CLIENT_ID:"
+        if [ -z "$AZURE_CLIENT_ID" ]; then
+          echo "  ❌ EMPTY or not set"
         else
-          echo "✅ AZURE_CREDENTIALS is set (length: $(echo '${{ secrets.AZURE_CREDENTIALS }}' | wc -c))"
-          echo "First 20 chars: $(echo '${{ secrets.AZURE_CREDENTIALS }}' | cut -c1-20)..."
+          echo "  ✅ SET - Length: ${#AZURE_CLIENT_ID} chars"
+          echo "  ✅ Value: $AZURE_CLIENT_ID"
         fi
         
-        if [ -z "${{ secrets.AZURE_CLIENT_ID }}" ]; then
-          echo "❌ AZURE_CLIENT_ID is EMPTY"
+        echo ""
+        echo "AZURE_TENANT_ID:"
+        if [ -z "$AZURE_TENANT_ID" ]; then
+          echo "  ❌ EMPTY or not set"
         else
-          echo "✅ AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}"
+          echo "  ✅ SET - Length: ${#AZURE_TENANT_ID} chars"  
+          echo "  ✅ Value: $AZURE_TENANT_ID"
         fi
         
-        if [ -z "${{ secrets.AZURE_TENANT_ID }}" ]; then
-          echo "❌ AZURE_TENANT_ID is EMPTY"  
+        echo ""
+        echo "AZURE_SUBSCRIPTION_ID:"
+        if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
+          echo "  ❌ EMPTY or not set"
         else
-          echo "✅ AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}"
+          echo "  ✅ SET - Length: ${#AZURE_SUBSCRIPTION_ID} chars"
+          echo "  ✅ Value: $AZURE_SUBSCRIPTION_ID"
         fi
         
-        if [ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
-          echo "❌ AZURE_SUBSCRIPTION_ID is EMPTY"
+        echo ""
+        echo "AZURE_CREDENTIALS:"
+        if [ -z "$AZURE_CREDENTIALS" ]; then
+          echo "  ❌ EMPTY or not set"
         else
-          echo "✅ AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+          echo "  ✅ SET - Length: ${#AZURE_CREDENTIALS} chars"
+          echo "  ✅ First 50 chars: ${AZURE_CREDENTIALS:0:50}..."
+          # Intentar validar si es JSON válido
+          if echo "$AZURE_CREDENTIALS" | jq . > /dev/null 2>&1; then
+            echo "  ✅ Valid JSON format"
+            echo "  ✅ clientId: $(echo "$AZURE_CREDENTIALS" | jq -r '.clientId // "missing"')"
+            echo "  ✅ tenantId: $(echo "$AZURE_CREDENTIALS" | jq -r '.tenantId // "missing"')"
+          else
+            echo "  ❌ Invalid JSON format"
+          fi
         fi
+      env:
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 'Try Azure Login with Individual Secrets'
+    - name: 'Try Login with AZURE_CREDENTIALS (if available)'
+      if: ${{ secrets.AZURE_CREDENTIALS != '' }}
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: 'Try Login with Individual Secrets (if CREDENTIALS failed)'
+      if: ${{ secrets.AZURE_CREDENTIALS == '' && secrets.AZURE_CLIENT_ID != '' }}
       uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        enable-AzPSSession: false
+        
+    - name: 'Manual Service Principal Login (last resort)'
+      if: ${{ secrets.AZURE_CREDENTIALS == '' && secrets.AZURE_CLIENT_ID == '' }}
+      run: |
+        echo "❌ No valid authentication method found"
+        echo ""
+        echo "📋 To fix this, you need to set ONE of these options:"
+        echo ""
+        echo "OPTION 1 - Individual Secrets:"
+        echo "  AZURE_CLIENT_ID = your-service-principal-app-id"
+        echo "  AZURE_TENANT_ID = your-azure-tenant-id"  
+        echo "  AZURE_SUBSCRIPTION_ID = your-subscription-id"
+        echo ""
+        echo "OPTION 2 - JSON Credentials:"
+        echo '  AZURE_CREDENTIALS = {"clientId":"...","clientSecret":"...","tenantId":"...","subscriptionId":"..."}'
+        echo ""
+        echo "❓ Check your GitHub repo Settings > Secrets and variables > Actions"
+        exit 1
 
     - name: Verify Authentication Method
       run: |
@@ -125,7 +174,7 @@ jobs:
 
     - name: Update Pull Request
       uses: actions/github-script@v7
-      if: false  
+      if: false  # Disabled since we only use manual triggers
       env:
         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
       with:
