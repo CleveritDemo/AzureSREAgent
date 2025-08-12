@@ -137,14 +137,36 @@ jobs:
     - name: Terraform Init
       id: init
       run: |
-        echo "🚀 Initializing Terraform..."
-        terraform init
+        echo "🚀 Initializing Terraform with backend configuration..."
+        
+        # Check if backend-dev.conf exists and use it
+        if [ -f "backend-dev.conf" ]; then
+          echo "Using backend-dev.conf for development environment"
+          terraform init -backend-config="backend-dev.conf"
+        else
+          echo "backend-dev.conf not found, using default backend"
+          terraform init
+        fi
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_CLIENT_SECRET: ${{ secrets.CLIENTSECRET }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         ARM_USE_CLI: false
+
+    - name: 'Check Available Configuration Files'
+      run: |
+        echo "📁 Checking available configuration files..."
+        echo "Current directory: $(pwd)"
+        echo ""
+        echo "Available .tfvars files:"
+        find . -name "*.tfvars" -type f || echo "No .tfvars files found"
+        echo ""
+        echo "Available .conf files:"
+        find . -name "*.conf" -type f || echo "No .conf files found"
+        echo ""
+        echo "All files in current directory:"
+        ls -la
 
     - name: Terraform Validate
       id: validate
@@ -156,7 +178,16 @@ jobs:
       id: plan
       run: |
         echo "📋 Creating Terraform execution plan..."
-        terraform plan -var-file="development.tfvars" -no-color
+        
+        # Use dev.tfvars directly (matching your local script pattern)
+        if [ -f "dev.tfvars" ]; then
+          echo "Using dev.tfvars (development environment)"
+          terraform plan -var-file="dev.tfvars" -no-color
+        else
+          echo "❌ dev.tfvars not found - creating basic dev.tfvars"
+          echo 'environment = "development"' > dev.tfvars
+          terraform plan -var-file="dev.tfvars" -no-color
+        fi
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_CLIENT_SECRET: ${{ secrets.CLIENTSECRET }}
@@ -223,7 +254,15 @@ jobs:
       if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_action == 'yes'
       run: |
         echo "🚀 Applying Terraform changes..."
-        terraform apply -var-file="development.tfvars" -auto-approve
+        
+        # Use dev.tfvars (matching your local script pattern)
+        if [ -f "dev.tfvars" ]; then
+          echo "Using dev.tfvars (development environment)"
+          terraform apply -var-file="dev.tfvars" -auto-approve
+        else
+          echo "❌ dev.tfvars not found - this shouldn't happen after plan step"
+          exit 1
+        fi
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_CLIENT_SECRET: ${{ secrets.CLIENTSECRET }}
@@ -235,7 +274,15 @@ jobs:
       if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_action == 'yes'
       run: |
         echo "🗑️ Destroying Terraform managed infrastructure..."
-        terraform destroy -var-file="development.tfvars" -auto-approve
+        
+        # Use dev.tfvars (matching your local script pattern)
+        if [ -f "dev.tfvars" ]; then
+          echo "Using dev.tfvars (development environment)"
+          terraform destroy -var-file="dev.tfvars" -auto-approve
+        else
+          echo "❌ dev.tfvars not found - this shouldn't happen after plan step"
+          exit 1
+        fi
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_CLIENT_SECRET: ${{ secrets.CLIENTSECRET }}
