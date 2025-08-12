@@ -17,7 +17,6 @@ on:
         required: false
         type: string
 
-# Permisos necesarios para OIDC
 permissions:
   id-token: write
   contents: read
@@ -100,37 +99,44 @@ jobs:
         AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 'Try Login with AZURE_CREDENTIALS (if available)'
-      if: ${{ secrets.AZURE_CREDENTIALS != '' }}
+    - name: 'Try Azure Login - Method 1: AZURE_CREDENTIALS'
+      id: login_credentials
+      continue-on-error: true
       uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
         
-    - name: 'Try Login with Individual Secrets (if CREDENTIALS failed)'
-      if: ${{ secrets.AZURE_CREDENTIALS == '' && secrets.AZURE_CLIENT_ID != '' }}
+    - name: 'Try Azure Login - Method 2: Individual Secrets'
+      id: login_individual
+      if: steps.login_credentials.outcome == 'failure'
+      continue-on-error: true
       uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         
-    - name: 'Manual Service Principal Login (last resort)'
-      if: ${{ secrets.AZURE_CREDENTIALS == '' && secrets.AZURE_CLIENT_ID == '' }}
+    - name: 'Check Authentication Results'
       run: |
-        echo "❌ No valid authentication method found"
-        echo ""
-        echo "📋 To fix this, you need to set ONE of these options:"
-        echo ""
-        echo "OPTION 1 - Individual Secrets:"
-        echo "  AZURE_CLIENT_ID = your-service-principal-app-id"
-        echo "  AZURE_TENANT_ID = your-azure-tenant-id"  
-        echo "  AZURE_SUBSCRIPTION_ID = your-subscription-id"
-        echo ""
-        echo "OPTION 2 - JSON Credentials:"
-        echo '  AZURE_CREDENTIALS = {"clientId":"...","clientSecret":"...","tenantId":"...","subscriptionId":"..."}'
-        echo ""
-        echo "❓ Check your GitHub repo Settings > Secrets and variables > Actions"
-        exit 1
+        echo "🔍 Authentication Results:"
+        echo "Method 1 (AZURE_CREDENTIALS): ${{ steps.login_credentials.outcome }}"
+        echo "Method 2 (Individual Secrets): ${{ steps.login_individual.outcome }}"
+        
+        if [ "${{ steps.login_credentials.outcome }}" = "success" ]; then
+          echo "✅ Successfully authenticated with AZURE_CREDENTIALS"
+        elif [ "${{ steps.login_individual.outcome }}" = "success" ]; then
+          echo "✅ Successfully authenticated with Individual Secrets"
+        else
+          echo "❌ Both authentication methods failed"
+          echo ""
+          echo "📋 Please check your GitHub Secrets configuration:"
+          echo "Settings > Secrets and variables > Actions"
+          echo ""
+          echo "You need EITHER:"
+          echo "1. AZURE_CREDENTIALS (JSON format)"
+          echo "2. OR all three: AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID"
+          exit 1
+        fi
 
     - name: Verify Authentication Method
       run: |
