@@ -1,17 +1,6 @@
-name: Deploy Infrastructure and Applications
+name: 'Terraform Infrastructure Management - DEV'
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'terraform-export-clean/**'
-      - 'src/**'
-      - '.github/workflows/deploy-infrastructure.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'terraform-export-clean/**'
-      - 'src/**'
   workflow_dispatch:
     inputs:
       action:
@@ -45,25 +34,18 @@ env:
   ARM_USE_CLI: false
 
 jobs:
-  deploy:
-    name: Deploy to Azure
+  terraform:
+    name: 'Terraform DEV'
     runs-on: ubuntu-latest
-    environment: dev
     
-    permissions:
-      id-token: write
-      contents: read
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.WORKING_DIRECTORY }}
 
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
-
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -154,53 +136,209 @@ jobs:
       continue-on-error: false
 
     - name: Terraform Init
-      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
-      run: terraform init
+      id: init
+      run: |
+        echo "🚀 Initializing Terraform with backend configuration..."
+        
+        # Check if backend-dev.conf exists and use it
+        if [ -f "backend-dev.conf" ]; then
+          echo "✅ Found backend-dev.conf, checking content:"
+          cat backend-dev.conf
+          echo ""
+          
+          # Create a temporary backend config with the main state key (same as your local setup)
+          echo "🔄 Creating backend config for main state (same as local)..."
+          cat > backend-main.conf <<EOF
+        resource_group_name  = "eShopCleverRG"
+        storage_account_name = "eshopterraformstate8636"
+        container_name       = "tfstate"
+        key                  = "terraform.tfstate"
+        EOF
+          
+          echo "✅ Using main state key to match your local setup:"
+          cat backend-main.conf
+          echo ""
+          
+          terraform init -backend-config="backend-main.conf"
+        else
+          echo "❌ backend-dev.conf not found, using default backend"
+          terraform init
+        fi
+        
+        echo ""
+        echo "🔍 Checking current state resources:"
+        terraform state list || echo "No resources in state"
+
+    - name: Check State and Resources
+      run: |
+        echo "📊 Checking current Terraform state..."
+        
+        # Check if state has resources
+        RESOURCE_COUNT=$(terraform state list 2>/dev/null | wc -l)
+        echo "Current state has $RESOURCE_COUNT resources"
+        
+        if [ "$RESOURCE_COUNT" -eq 0 ]; then
+          echo "⚠️ State appears to be empty - this might be a new workspace"
+          echo "🔍 Checking if resources exist in Azure..."
+          
+          # Check if the resource group exists
+          if az group show --name "eShopCleverRG" >/dev/null 2>&1; then
+            echo "✅ Resource group 'eShopCleverRG' exists in Azure"
+            echo "💡 You may need to import existing resources or use the correct state file"
+            echo ""
+            echo "🔄 Options to consider:"
+            echo "1. Import existing resources: terraform import azurerm_resource_group.eshop_rg /subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG"
+            echo "2. Check if you're using the correct backend configuration"
+            echo "3. Verify the state file path in your backend config"
+          else
+            echo "ℹ️ Resource group doesn't exist - this appears to be a fresh deployment"
+          fi
+        else
+          echo "✅ State contains $RESOURCE_COUNT resources - looks good!"
+          terraform state list
+        fi
+
+    - name: Terraform Validate
+      id: validate
+      run: |
+        echo "✅ Validating Terraform configuration..."
+        terraform validate
 
     - name: Terraform Plan
-      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
-      run: terraform plan -out=tfplan
+      id: plan
+      run: |
+        echo "📋 Creating Terraform execution plan..."
+        
+        # Use dev.tfvars directly (matching your local script pattern)
+        if [ -f "dev.tfvars" ]; then
+          echo "Using dev.tfvars (development environment)"
+          terraform plan -var-file="dev.tfvars" -no-color
+        else
+          echo "❌ dev.tfvars not found - creating basic dev.tfvars"
+          cat > dev.tfvars <<EOF
+        # Development environment configuration
+        environment = "development"
+        subscription_id = "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        tenant_id = "${{ secrets.AZURE_TENANT_ID }}"
+        EOF
+          terraform plan -var-file="dev.tfvars" -no-color
+        fi
+      continue-on-error: false
+
+    - name: 'Update Pull Request'
+      uses: actions/github-script@v7
+      if: false  # Disabled since we only use manual triggers
+      env:
+        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+          #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+          #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+          <details><summary>Validation Output</summary>
+          
+          \`\`\`\n
+          ${{ steps.validate.outputs.stdout }}
+          \`\`\`
+          
+          </details>
+          
+          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+          
+          <details><summary>Show Plan</summary>
+          
+          \`\`\`terraform\n
+          ${process.env.PLAN}
+          \`\`\`
+          
+          </details>
+          
+          *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.WORKING_DIRECTORY }}\`, Workflow: \`${{ github.workflow }}\`*`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })
+
+    - name: Safety Check for Apply/Destroy
+      if: github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy'
+      run: |
+        echo "⚠️ SAFETY CHECK BEFORE ${{ github.event.inputs.action }}"
+        echo "Environment: DEVELOPMENT"
+        echo "Action requested: ${{ github.event.inputs.action }}"
+        echo "Confirmation: ${{ github.event.inputs.confirm_action }}"
+        
+        if [ "${{ github.event.inputs.confirm_action }}" != "yes" ]; then
+          echo "❌ ${{ github.event.inputs.action }} action requires confirmation."
+          echo "   Please set 'confirm_action' to 'yes' to proceed"
+          exit 1
+        fi
+        
+        echo "✅ Safety check passed for ${{ github.event.inputs.action }} in DEV environment"
 
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
-      run: terraform apply -auto-approve tfplan
-
-    - name: Get ACR Login Server
-      id: acr-info
+      if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_action == 'yes'
       run: |
-        ACR_NAME=$(az acr list --resource-group eShopCleverRG --query '[0].name' -o tsv)
-        ACR_LOGIN_SERVER=$(az acr list --resource-group eShopCleverRG --query '[0].loginServer' -o tsv)
-        echo "acr_name=$ACR_NAME" >> $GITHUB_OUTPUT
-        echo "acr_login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
-
-    - name: Login to Azure Container Registry
-      run: |
-        az acr login --name ${{ steps.acr-info.outputs.acr_name }}
-
-    - name: Build and Push Docker Images
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: |
-        # Build and push WebMVC image
-        if [ -d "./src/Web" ]; then
-          docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/eshop-webmvc:${{ github.sha }} ./src/Web
-          docker push ${{ steps.acr-info.outputs.acr_login_server }}/eshop-webmvc:${{ github.sha }}
-        fi
+        echo "🚀 Applying Terraform changes..."
         
-        # Build and push PublicApi image  
-        if [ -d "./src/PublicApi" ]; then
-          docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/eshop-publicapi:${{ github.sha }} ./src/PublicApi
-          docker push ${{ steps.acr-info.outputs.acr_login_server }}/eshop-publicapi:${{ github.sha }}
+        # Use dev.tfvars (matching your local script pattern)
+        if [ -f "dev.tfvars" ]; then
+          echo "Using dev.tfvars (development environment)"
+          terraform apply -var-file="dev.tfvars" -auto-approve
+        else
+          echo "❌ dev.tfvars not found - this shouldn't happen after plan step"
+          exit 1
         fi
 
-    - name: Deploy to AKS
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    - name: Terraform Destroy
+      if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_action == 'yes'
       run: |
-        # Get AKS credentials
-        az aks get-credentials --resource-group eShopCleverRG --name eshopcleveraks --overwrite-existing
+        echo "🗑️ Destroying Terraform managed infrastructure..."
         
-        # Apply Kubernetes manifests if they exist
-        if [ -d "./k8s" ]; then
-          kubectl apply -f ./k8s/
+        # Use dev.tfvars (matching your local script pattern)
+        if [ -f "dev.tfvars" ]; then
+          echo "Using dev.tfvars (development environment)"
+          terraform destroy -var-file="dev.tfvars" -auto-approve
+        else
+          echo "❌ dev.tfvars not found - this shouldn't happen after plan step"
+          exit 1
         fi
 
+    - name: Verify Infrastructure State
+      if: github.event.inputs.action == 'apply'
+      run: |
+        echo "📊 Verifying infrastructure state..."
+        terraform state list
+        
+        # Verificar recursos clave según tu documentación
+        echo "🔍 Checking key resources:"
+        terraform state show azurerm_resource_group.eshop_rg || echo "Resource group not found"
+        terraform state show azurerm_kubernetes_cluster.eshop_aks || echo "AKS cluster not found"  
+        terraform state show azurerm_container_registry.eshop_acr || echo "ACR not found"
+
+    - name: Post-Apply Notification
+      if: always()
+      run: |
+        echo "📝 Workflow Summary:"
+        echo "- Environment: DEVELOPMENT"
+        echo "- Action: ${{ github.event.inputs.action }}"
+        echo "- Trigger: Manual (workflow_dispatch)"
+        echo "- Status: ${{ job.status }}"
+        echo ""
+        echo "🎯 Pro Tips for DEV environment:"
+        echo "- Small Changes: Perfect for testing one change at a time"
+        echo "- Safe Testing: DEV is your playground - experiment freely!"
+        echo "- Document: Still add comments for what you're testing"
+        echo ""
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Workflow completed successfully!"
+        else
+          echo "❌ Workflow failed. Check logs above."
+          echo "🆘 Emergency Commands:"
+          echo "- terraform state list"
+          echo "- terraform refresh"
+          echo "- Check GitHub Actions logs"
+        fi
