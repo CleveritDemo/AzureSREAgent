@@ -145,21 +145,8 @@ jobs:
           echo "✅ Found backend-dev.conf, checking content:"
           cat backend-dev.conf
           echo ""
-          
-          # Create a temporary backend config with the main state key (same as your local setup)
-          echo "🔄 Creating backend config for main state (same as local)..."
-          cat > backend-main.conf <<EOF
-        resource_group_name  = "eShopCleverRG"
-        storage_account_name = "eshopterraformstate8636"
-        container_name       = "tfstate"
-        key                  = "terraform.tfstate"
-        EOF
-          
-          echo "✅ Using main state key to match your local setup:"
-          cat backend-main.conf
-          echo ""
-          
-          terraform init -backend-config="backend-main.conf"
+          echo "🔄 Initializing with backend-dev.conf..."
+          terraform init -backend-config="backend-dev.conf"
         else
           echo "❌ backend-dev.conf not found, using default backend"
           terraform init
