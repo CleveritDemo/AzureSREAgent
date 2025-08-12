@@ -26,11 +26,11 @@ env:
   TF_VERSION: '1.5.7'
   WORKING_DIRECTORY: 'terraform-export-clean'
   ENVIRONMENT: 'development'
-  # Azure authentication for Terraform
+  # Azure authentication for Terraform (OIDC)
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  ARM_CLIENT_SECRET: ${{ secrets.CLIENTSECRET }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_USE_OIDC: true
   ARM_USE_CLI: false
 
 jobs:
@@ -54,10 +54,9 @@ jobs:
 
     - name: 'Debug Azure Secrets'
       run: |
-        echo "🔍 Debugging Azure secrets..."
+        echo "🔍 Debugging Azure secrets for OIDC..."
         echo "=================================="
         
-        # Mostrar información detallada de cada secret
         echo "AZURE_CLIENT_ID:"
         if [ -z "$AZURE_CLIENT_ID" ]; then
           echo "  ❌ EMPTY or not set"
@@ -85,47 +84,29 @@ jobs:
         fi
         
         echo ""
-        echo "CLIENTSECRET:"
-        if [ -z "$CLIENTSECRET" ]; then
-          echo "  ❌ EMPTY or not set"
-        else
-          echo "  ✅ SET - Length: ${#CLIENTSECRET} chars"
-          echo "  ✅ First 10 chars: ${CLIENTSECRET:0:10}..."
-        fi
+        echo "🔐 OIDC Authentication Method:"
+        echo "  ✅ Using OIDC (no client secret needed)"
+        echo "  ✅ ARM_USE_OIDC: true"
+        echo "  ✅ ARM_USE_CLI: false"
       env:
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        CLIENTSECRET: ${{ secrets.CLIENTSECRET }}
 
-    - name: 'Azure Login with Service Principal'
-      run: |
-        echo "🔐 Logging in to Azure with Service Principal..."
-        
-        # Login usando Service Principal con client-secret
-        az login --service-principal \
-          --username "${{ secrets.AZURE_CLIENT_ID }}" \
-          --password "${{ secrets.CLIENTSECRET }}" \
-          --tenant "${{ secrets.AZURE_TENANT_ID }}"
-        
-        # Establecer la suscripción
-        az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-        
-        # Verificar login exitoso
-        echo "✅ Login successful!"
-        az account show --output table
+    - name: 'Azure Login with OIDC'
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     - name: Verify Authentication Method
       run: |
         echo "🔍 Verifying authentication setup..."
-        echo "Using Service Principal with client-secret"
+        echo "✅ Azure login completed successfully"
         
         # Verificar que podemos acceder a Azure
         az account show --output table
-      env:
-        # No necesitamos estas variables para el método de credentials
-        ARM_USE_OIDC: false
-        ARM_USE_CLI: true
 
     - name: 'Check Available Configuration Files'
       run: |
