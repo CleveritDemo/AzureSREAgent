@@ -1,0 +1,25 @@
+{
+  "changedTime": "2025-08-12T15:58:10.862638-03:00",
+  "createdTime": "2025-08-12T15:57:49.971614-03:00",
+  "extendedLocation": null,
+  "id": "/subscriptions/d7d7369b-a14f-43bc-a564-b4a077d170a9/resourceGroups/eShopCleverRG/providers/Microsoft.Storage/storageAccounts/eshopterraformstate5738",
+  "identity": null,
+  "kind": "StorageV2",
+  "location": "eastus2",
+  "managedBy": null,
+  "name": "eshopterraformstate5738",
+  "plan": null,
+  "properties": null,
+  "provisioningState": "Succeeded",
+  "resourceGroup": "eShopCleverRG",
+  "sku": {
+    "capacity": null,
+    "family": null,
+    "model": null,
+    "name": "Standard_LRS",
+    "size": null,
+    "tier": "Standard"
+  },
+  "tags": {},
+  "type": "Microsoft.Storage/storageAccounts"
+}

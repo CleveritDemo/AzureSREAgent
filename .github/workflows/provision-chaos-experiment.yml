@@ -50,9 +50,9 @@ on:
         default: false
 
 env:
-  AZURE_SUBSCRIPTION_ID: 5f62fee3-b00a-44d2-86e5-5cf130b28b5d
+  AZURE_SUBSCRIPTION_ID: d7d7369b-a14f-43bc-a564-b4a077d170a9
   TERRAFORM_WORKING_DIR: ./terraform-export-clean
-  TF_VAR_subscription_id: 5f62fee3-b00a-44d2-86e5-5cf130b28b5d
+  TF_VAR_subscription_id: d7d7369b-a14f-43bc-a564-b4a077d170a9
   # Terraform Azure Provider Authentication
   ARM_USE_OIDC: true
   ARM_USE_AZUREAD: true

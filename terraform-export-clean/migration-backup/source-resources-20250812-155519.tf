@@ -11,7 +11,7 @@ resource "azurerm_resource_group" "eshop_rg" {
 
 # Container Registry
 resource "azurerm_container_registry" "eshop_acr" {
-  name                = "${var.project_name}acr${substr(random_string.domain_verification.result, 0, 4)}"
+  name                = "${var.project_name}acr"
   resource_group_name = azurerm_resource_group.eshop_rg.name
   location            = "East US"  # Note: Different from RG location
   sku                 = "Basic"
@@ -30,7 +30,7 @@ resource "azurerm_container_registry" "eshop_acr" {
 
 # SQL Server
 resource "azurerm_mssql_server" "eshop_sql_server" {
-  name                         = "${var.project_name}-sqlsrv-${substr(random_string.domain_verification.result, 0, 4)}"
+  name                         = "${var.project_name}-sqlsrv"
   resource_group_name          = azurerm_resource_group.eshop_rg.name
   location                     = azurerm_resource_group.eshop_rg.location
   version                      = "12.0"

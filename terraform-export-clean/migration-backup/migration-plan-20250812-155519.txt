@@ -1,0 +1,260 @@
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform planned the following actions, but then encountered a problem:
+
+  # azurerm_container_registry.eshop_acr will be created
+  + resource "azurerm_container_registry" "eshop_acr" {
+      + admin_enabled                 = true
+      + admin_password                = (sensitive value)
+      + admin_username                = (known after apply)
+      + anonymous_pull_enabled        = false
+      + data_endpoint_enabled         = false
+      + data_endpoint_host_names      = (known after apply)
+      + encryption                    = (known after apply)
+      + export_policy_enabled         = true
+      + id                            = (known after apply)
+      + location                      = "eastus"
+      + login_server                  = (known after apply)
+      + name                          = "eshopcleveracr"
+      + network_rule_bypass_option    = "AzureServices"
+      + network_rule_set              = (known after apply)
+      + public_network_access_enabled = true
+      + resource_group_name           = "eShopCleverRG"
+      + sku                           = "Basic"
+      + tags                          = {
+          + "environment" = "migrated"
+          + "project"     = "eshop"
+        }
+      + trust_policy_enabled          = false
+      + zone_redundancy_enabled       = false
+    }
+
+  # azurerm_kubernetes_cluster.eshop_aks will be created
+  + resource "azurerm_kubernetes_cluster" "eshop_aks" {
+      + current_kubernetes_version          = (known after apply)
+      + dns_prefix                          = "eshopcleverak-eShopCleverRG-d7d736"
+      + fqdn                                = (known after apply)
+      + http_application_routing_zone_name  = (known after apply)
+      + id                                  = (known after apply)
+      + kube_admin_config                   = (sensitive value)
+      + kube_admin_config_raw               = (sensitive value)
+      + kube_config                         = (sensitive value)
+      + kube_config_raw                     = (sensitive value)
+      + kubernetes_version                  = "1.32"
+      + location                            = "eastus"
+      + name                                = "eshopcleveraks"
+      + node_os_upgrade_channel             = "NodeImage"
+      + node_resource_group                 = (known after apply)
+      + node_resource_group_id              = (known after apply)
+      + oidc_issuer_url                     = (known after apply)
+      + portal_fqdn                         = (known after apply)
+      + private_cluster_enabled             = false
+      + private_cluster_public_fqdn_enabled = false
+      + private_dns_zone_id                 = (known after apply)
+      + private_fqdn                        = (known after apply)
+      + resource_group_name                 = "eShopCleverRG"
+      + role_based_access_control_enabled   = true
+      + run_command_enabled                 = true
+      + sku_tier                            = "Free"
+      + support_plan                        = "KubernetesOfficial"
+      + tags                                = {
+          + "environment" = "migrated"
+          + "project"     = "eshop"
+        }
+      + workload_identity_enabled           = false
+
+      + auto_scaler_profile (known after apply)
+
+      + default_node_pool {
+          + kubelet_disk_type    = (known after apply)
+          + max_pods             = 250
+          + name                 = "nodepool1"
+          + node_count           = 1
+          + node_labels          = (known after apply)
+          + orchestrator_version = (known after apply)
+          + os_disk_size_gb      = 128
+          + os_disk_type         = "Managed"
+          + os_sku               = (known after apply)
+          + scale_down_mode      = "Delete"
+          + type                 = "VirtualMachineScaleSets"
+          + ultra_ssd_enabled    = false
+          + vm_size              = "Standard_D2s_v3"
+          + workload_runtime     = (known after apply)
+
+          + upgrade_settings {
+              + max_surge = "10%"
+            }
+        }
+
+      + identity {
+          + principal_id = (known after apply)
+          + tenant_id    = (known after apply)
+          + type         = "SystemAssigned"
+        }
+
+      + kubelet_identity (known after apply)
+
+      + linux_profile {
+          + admin_username = "azureuser"
+
+          + ssh_key {
+              + key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC33ECCPzwTwcnPvlI/ivFIgINIleg8Yxxe8aNHek5fpgr0dVfkNgmIYqP4F7Je9hBsdlIP1EFC/OU7Mepele4dSlEY4DJmSDQUH4BhAN+fGhKmt1k847dZezP0KGSli8LqdvWL3k2s3WsSPkEg4AD1A5jqDsKBUPN60giMJxT0tDvMuo59kVleJWR05NfzshKWvDuBLBaGmsRLcNBY+EnJcNHVU/ufMDifYq9HUOPd5PxTsprlU0uy5MDp0GvYEqhu/cIW48tF8AfIXfDjiI4vlXje2KtJhlZfehQ0FaMUkJPk/1yZqXbNxm5YRwwCOIeUkBLLkZUu+3Yt7KK2YBjR"
+            }
+        }
+
+      + network_profile {
+          + dns_service_ip      = "10.0.0.10"
+          + ip_versions         = (known after apply)
+          + load_balancer_sku   = "standard"
+          + network_data_plane  = "azure"
+          + network_mode        = (known after apply)
+          + network_plugin      = "azure"
+          + network_plugin_mode = "overlay"
+          + network_policy      = (known after apply)
+          + outbound_type       = "loadBalancer"
+          + pod_cidr            = "10.244.0.0/16"
+          + pod_cidrs           = (known after apply)
+          + service_cidr        = "10.0.0.0/16"
+          + service_cidrs       = (known after apply)
+
+          + load_balancer_profile (known after apply)
+
+          + nat_gateway_profile (known after apply)
+        }
+
+      + storage_profile {
+          + blob_driver_enabled         = false
+          + disk_driver_enabled         = true
+          + file_driver_enabled         = true
+          + snapshot_controller_enabled = true
+        }
+
+      + windows_profile (known after apply)
+    }
+
+  # azurerm_mssql_database.eshop_db will be created
+  + resource "azurerm_mssql_database" "eshop_db" {
+      + auto_pause_delay_in_minutes                                = (known after apply)
+      + collation                                                  = "SQL_Latin1_General_CP1_CI_AS"
+      + create_mode                                                = "Default"
+      + creation_source_database_id                                = (known after apply)
+      + enclave_type                                               = (known after apply)
+      + geo_backup_enabled                                         = true
+      + id                                                         = (known after apply)
+      + ledger_enabled                                             = (known after apply)
+      + license_type                                               = (known after apply)
+      + maintenance_configuration_name                             = (known after apply)
+      + max_size_gb                                                = 250
+      + min_capacity                                               = (known after apply)
+      + name                                                       = "eshopdb"
+      + read_replica_count                                         = (known after apply)
+      + read_scale                                                 = (known after apply)
+      + restore_point_in_time                                      = (known after apply)
+      + sample_name                                                = (known after apply)
+      + secondary_type                                             = (known after apply)
+      + server_id                                                  = (known after apply)
+      + sku_name                                                   = "S0"
+      + storage_account_type                                       = "Geo"
+      + tags                                                       = {
+          + "environment" = "migrated"
+          + "project"     = "eshop"
+        }
+      + transparent_data_encryption_enabled                        = true
+      + transparent_data_encryption_key_automatic_rotation_enabled = false
+      + zone_redundant                                             = (known after apply)
+
+      + long_term_retention_policy (known after apply)
+
+      + short_term_retention_policy (known after apply)
+
+      + threat_detection_policy (known after apply)
+    }
+
+  # azurerm_mssql_firewall_rule.allow_all will be created
+  + resource "azurerm_mssql_firewall_rule" "allow_all" {
+      + end_ip_address   = "255.255.255.255"
+      + id               = (known after apply)
+      + name             = "AllowAll"
+      + server_id        = (known after apply)
+      + start_ip_address = "0.0.0.0"
+    }
+
+  # azurerm_mssql_server.eshop_sql_server will be created
+  + resource "azurerm_mssql_server" "eshop_sql_server" {
+      + administrator_login                      = "eshopsreadmin"
+      + administrator_login_password             = (sensitive value)
+      + connection_policy                        = "Default"
+      + express_vulnerability_assessment_enabled = false
+      + fully_qualified_domain_name              = (known after apply)
+      + id                                       = (known after apply)
+      + location                                 = "eastus2"
+      + minimum_tls_version                      = "1.2"
+      + name                                     = "eshopclever-sqlsrv"
+      + outbound_network_restriction_enabled     = false
+      + primary_user_assigned_identity_id        = (known after apply)
+      + public_network_access_enabled            = true
+      + resource_group_name                      = "eShopCleverRG"
+      + restorable_dropped_database_ids          = (known after apply)
+      + tags                                     = {
+          + "environment" = "migrated"
+          + "project"     = "eshop"
+        }
+      + version                                  = "12.0"
+    }
+
+  # azurerm_resource_group.eshop_rg will be created
+  + resource "azurerm_resource_group" "eshop_rg" {
+      + id       = (known after apply)
+      + location = "eastus2"
+      + name     = "eShopCleverRG"
+      + tags     = {
+          + "environment" = "migrated"
+          + "project"     = "eshop"
+        }
+    }
+
+  # azurerm_role_assignment.aks_acr_pull will be created
+  + resource "azurerm_role_assignment" "aks_acr_pull" {
+      + condition_version                = (known after apply)
+      + id                               = (known after apply)
+      + name                             = (known after apply)
+      + principal_id                     = (known after apply)
+      + principal_type                   = (known after apply)
+      + role_definition_id               = (known after apply)
+      + role_definition_name             = "AcrPull"
+      + scope                            = (known after apply)
+      + skip_service_principal_aad_check = true
+    }
+
+  # random_string.domain_verification will be created
+  + resource "random_string" "domain_verification" {
+      + id          = (known after apply)
+      + length      = 32
+      + lower       = true
+      + min_lower   = 0
+      + min_numeric = 0
+      + min_special = 0
+      + min_upper   = 0
+      + number      = true
+      + numeric     = true
+      + result      = (known after apply)
+      + special     = false
+      + upper       = false
+    }
+
+Plan: 8 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + aks_cluster_fqdn                = (known after apply)
+  + aks_cluster_name                = "eshopcleveraks"
+  + aks_kube_config                 = (sensitive value)
+  + container_registry_login_server = (known after apply)
+  + custom_domain_name              = "Not configured"
+  + dns_name_servers                = []
+  + domain_verification_txt         = (known after apply)
+  + resource_group_name             = "eShopCleverRG"
+  + sql_database_name               = "eshopdb"
+  + sql_server_fqdn                 = (known after apply)

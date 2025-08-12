@@ -203,3 +203,4 @@ jobs:
         if [ -d "./k8s" ]; then
           kubectl apply -f ./k8s/
         fi
+

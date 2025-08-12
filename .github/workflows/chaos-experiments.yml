@@ -24,7 +24,7 @@ on:
         type: string
 
 env:
-  AZURE_SUBSCRIPTION_ID: 5f62fee3-b00a-44d2-86e5-5cf130b28b5d
+  AZURE_SUBSCRIPTION_ID: d7d7369b-a14f-43bc-a564-b4a077d170a9
   RESOURCE_GROUP: eShopCleverRG
 
 jobs:
@@ -202,3 +202,4 @@ jobs:
         echo "Check the logs above for detailed results."
         echo "Experiment type: ${{ github.event.inputs.experiment_name || 'scheduled-all' }}"
         echo "Duration: ${{ github.event.inputs.duration_minutes || 'default' }} minutes"
+
