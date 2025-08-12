@@ -1,0 +1,483 @@
+name: Provision Chaos Experiment with Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      experiment_name:
+        description: 'Name of the chaos experiment to provision'
+        required: true
+        type: string
+        default: 'new-chaos-experiment'
+      experiment_type:
+        description: 'Type of chaos experiment'
+        required: true
+        type: choice
+        options:
+          - pod-failure
+          - cpu-stress
+          - memory-stress
+          - network-delay
+          - io-stress
+          - disk-stress
+      target_namespace:
+        description: 'Kubernetes namespace to target'
+        required: true
+        type: string
+        default: 'eshop'
+      target_labels:
+        description: 'Target pod labels (JSON format: {"app": "eshop-webmvc"})'
+        required: true
+        type: string
+        default: '{"app": "eshop-webmvc"}'
+      duration_minutes:
+        description: 'Experiment duration in minutes'
+        required: true
+        type: string
+        default: '5'
+      action_duration:
+        description: 'Chaos action duration (e.g., 60s, 300s)'
+        required: true
+        type: string
+        default: '60s'
+      dry_run:
+        description: 'Run terraform plan only (no apply)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  AZURE_SUBSCRIPTION_ID: 5f62fee3-b00a-44d2-86e5-5cf130b28b5d
+  TERRAFORM_WORKING_DIR: ./terraform-export-clean
+  TF_VAR_subscription_id: 5f62fee3-b00a-44d2-86e5-5cf130b28b5d
+
+jobs:
+  validate-inputs:
+    name: Validate Inputs
+    runs-on: ubuntu-latest
+    outputs:
+      experiment_config: ${{ steps.validate.outputs.experiment_config }}
+      selector_id: ${{ steps.validate.outputs.selector_id }}
+    steps:
+    - name: Validate and Generate Configuration
+      id: validate
+      run: |
+        # Generate unique selector ID
+        SELECTOR_ID=$(uuidgen)
+        echo "selector_id=$SELECTOR_ID" >> $GITHUB_OUTPUT
+        
+        # Validate JSON format for target labels
+        echo '${{ inputs.target_labels }}' | jq . > /dev/null || {
+          echo "Error: Invalid JSON format for target_labels"
+          exit 1
+        }
+        
+        # Generate experiment configuration based on type
+        case "${{ inputs.experiment_type }}" in
+          "pod-failure")
+            CONFIG=$(cat << EOF
+        {
+          "action": "pod-failure",
+          "mode": "one",
+          "duration": "${{ inputs.action_duration }}",
+          "selector": {
+            "namespaces": ["${{ inputs.target_namespace }}"],
+            "labelSelectors": ${{ inputs.target_labels }}
+          }
+        }
+        EOF
+        )
+            ;;
+          "cpu-stress")
+            CONFIG=$(cat << EOF
+        {
+          "mode": "one",
+          "duration": "${{ inputs.action_duration }}",
+          "selector": {
+            "namespaces": ["${{ inputs.target_namespace }}"],
+            "labelSelectors": ${{ inputs.target_labels }}
+          },
+          "stressors": {
+            "cpu": {
+              "workers": 2,
+              "load": 80
+            }
+          }
+        }
+        EOF
+        )
+            ;;
+          "memory-stress")
+            CONFIG=$(cat << EOF
+        {
+          "mode": "one", 
+          "duration": "${{ inputs.action_duration }}",
+          "selector": {
+            "namespaces": ["${{ inputs.target_namespace }}"],
+            "labelSelectors": ${{ inputs.target_labels }}
+          },
+          "stressors": {
+            "memory": {
+              "workers": 1,
+              "size": "256MB"
+            }
+          }
+        }
+        EOF
+        )
+            ;;
+          "network-delay")
+            CONFIG=$(cat << EOF
+        {
+          "action": "delay",
+          "mode": "one",
+          "duration": "${{ inputs.action_duration }}",
+          "selector": {
+            "namespaces": ["${{ inputs.target_namespace }}"],
+            "labelSelectors": ${{ inputs.target_labels }}
+          },
+          "delay": {
+            "latency": "100ms",
+            "correlation": "100",
+            "jitter": "0ms"
+          }
+        }
+        EOF
+        )
+            ;;
+          "io-stress")
+            CONFIG=$(cat << EOF
+        {
+          "mode": "one",
+          "duration": "${{ inputs.action_duration }}",
+          "selector": {
+            "namespaces": ["${{ inputs.target_namespace }}"],
+            "labelSelectors": ${{ inputs.target_labels }}
+          },
+          "stressors": {
+            "io": {
+              "workers": 1
+            }
+          }
+        }
+        EOF
+        )
+            ;;
+          *)
+            echo "Error: Unsupported experiment type: ${{ inputs.experiment_type }}"
+            exit 1
+            ;;
+        esac
+        
+        # Compress and encode the configuration
+        echo "experiment_config=$(echo "$CONFIG" | jq -c .)" >> $GITHUB_OUTPUT
+
+  terraform-provision:
+    name: Provision with Terraform
+    runs-on: ubuntu-latest
+    needs: validate-inputs
+    environment: dev
+    
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "~1.0"
+
+    - name: Check Terraform State Lock
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: |
+        echo "Checking for any existing state locks..."
+        terraform init -backend=true
+        
+        # Check if state is locked
+        if ! terraform refresh -lock-timeout=30s; then
+          echo "Warning: Terraform state might be locked. Attempting to force unlock..."
+          # Note: In production, you might want to handle this more carefully
+          terraform force-unlock -force $(terraform show -json 2>/dev/null | jq -r '.values.root_module.resources[] | select(.type=="terraform_remote_state") | .values.workspace' || echo "")
+        fi
+
+    - name: Generate Terraform Configuration for New Experiment
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: |
+        # Create a new terraform file for the experiment
+        cat << EOF > chaos-experiment-${{ inputs.experiment_name }}.tf
+        # Generated Chaos Experiment: ${{ inputs.experiment_name }}
+        # Type: ${{ inputs.experiment_type }}
+        # Generated at: $(date -u)
+        
+        resource "azurerm_chaos_studio_experiment" "${{ inputs.experiment_name }}" {
+          name                = "${{ inputs.experiment_name }}"
+          resource_group_name = data.azurerm_resource_group.main.name
+          location            = "eastus"
+          
+          identity {
+            type = "SystemAssigned"
+          }
+          
+          selectors {
+            name                     = "${{ needs.validate-inputs.outputs.selector_id }}"
+            chaos_studio_target_ids  = [azurerm_chaos_studio_target.aks_target.id]
+          }
+          
+          steps {
+            name = "Step 1"
+            branch {
+              name = "Branch 1"
+              actions {
+                urn           = "urn:csci:microsoft:azureKubernetesServiceChaosMesh:$(echo "${{ inputs.experiment_type }}" | sed 's/-//g')Chaos/2.2"
+                action_type   = "continuous"
+                duration      = "PT${{ inputs.duration_minutes }}M"
+                selector_name = "${{ needs.validate-inputs.outputs.selector_id }}"
+                parameters = {
+                  jsonSpec = jsonencode(${{ needs.validate-inputs.outputs.experiment_config }})
+                }
+              }
+            }
+          }
+          
+          tags = {
+            Environment = "dev"
+            CreatedBy   = "github-actions"
+            ExperimentType = "${{ inputs.experiment_type }}"
+            CreatedAt   = "$(date -u +%Y-%m-%d)"
+          }
+        }
+        
+        # Output the experiment details
+        output "${{ inputs.experiment_name }}_id" {
+          description = "ID of the ${{ inputs.experiment_name }} chaos experiment"
+          value       = azurerm_chaos_studio_experiment.${{ inputs.experiment_name }}.id
+        }
+        
+        output "${{ inputs.experiment_name }}_name" {
+          description = "Name of the ${{ inputs.experiment_name }} chaos experiment"
+          value       = azurerm_chaos_studio_experiment.${{ inputs.experiment_name }}.name
+        }
+        EOF
+        
+        echo "Generated Terraform configuration:"
+        cat chaos-experiment-${{ inputs.experiment_name }}.tf
+
+    - name: Terraform Init
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: |
+        terraform init -upgrade
+        
+        # Verify backend configuration
+        terraform version
+        terraform providers
+
+    - name: Terraform Validate
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: terraform validate
+
+    - name: Terraform Plan
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: |
+        # Create plan with detailed output
+        terraform plan \
+          -out=tfplan-${{ inputs.experiment_name }} \
+          -detailed-exitcode \
+          -var="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
+          -var="subscription_id=${{ env.AZURE_SUBSCRIPTION_ID }}"
+        
+        # Save plan output for review
+        terraform show -no-color tfplan-${{ inputs.experiment_name }} > tfplan-${{ inputs.experiment_name }}.txt
+        
+        echo "## Terraform Plan for ${{ inputs.experiment_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "### Configuration Details:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Experiment Name:** ${{ inputs.experiment_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Type:** ${{ inputs.experiment_type }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Target Namespace:** ${{ inputs.target_namespace }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Target Labels:** ${{ inputs.target_labels }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Duration:** ${{ inputs.duration_minutes }} minutes" >> $GITHUB_STEP_SUMMARY
+        echo "- **Action Duration:** ${{ inputs.action_duration }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Plan Output:" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        head -50 tfplan-${{ inputs.experiment_name }}.txt >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+    - name: Terraform Apply
+      if: ${{ !inputs.dry_run }}
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: |
+        echo "Applying Terraform plan for ${{ inputs.experiment_name }}..."
+        terraform apply -auto-approve tfplan-${{ inputs.experiment_name }}
+        
+        # Show outputs
+        terraform output
+
+    - name: Verify State Sync
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: |
+        echo "Verifying remote state synchronization..."
+        
+        # Check state file
+        terraform state list
+        
+        # Verify specific resource exists in state
+        if terraform state show "azurerm_chaos_studio_experiment.${{ inputs.experiment_name }}" > /dev/null 2>&1; then
+          echo "✅ Experiment ${{ inputs.experiment_name }} successfully added to Terraform state"
+        else
+          echo "❌ Experiment ${{ inputs.experiment_name }} not found in Terraform state"
+          exit 1
+        fi
+        
+        # Check remote backend
+        terraform refresh -target="azurerm_chaos_studio_experiment.${{ inputs.experiment_name }}"
+        
+        echo "## State Verification Results" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Remote state is in sync" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Experiment ${{ inputs.experiment_name }} added successfully" >> $GITHUB_STEP_SUMMARY
+
+    - name: Update Documentation
+      if: ${{ !inputs.dry_run }}
+      run: |
+        # Create or update experiment documentation
+        mkdir -p docs/chaos-experiments
+        
+        cat << EOF > docs/chaos-experiments/${{ inputs.experiment_name }}.md
+        # Chaos Experiment: ${{ inputs.experiment_name }}
+        
+        ## Configuration
+        - **Type:** ${{ inputs.experiment_type }}
+        - **Target Namespace:** ${{ inputs.target_namespace }}
+        - **Target Labels:** ${{ inputs.target_labels }}
+        - **Duration:** ${{ inputs.duration_minutes }} minutes
+        - **Action Duration:** ${{ inputs.action_duration }}
+        - **Created:** $(date -u)
+        - **Selector ID:** ${{ needs.validate-inputs.outputs.selector_id }}
+        
+        ## Terraform Configuration
+        The experiment is defined in \`terraform-export-clean/chaos-experiment-${{ inputs.experiment_name }}.tf\`
+        
+        ## Usage
+        This experiment can be executed through:
+        1. Azure Chaos Studio portal
+        2. Azure CLI
+        3. GitHub Actions workflow
+        
+        ## Monitoring
+        Monitor the experiment through:
+        - Azure Portal > Chaos Studio
+        - Kubernetes logs
+        - Application metrics
+        EOF
+
+    - name: Cleanup on Failure
+      if: failure()
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: |
+        echo "Cleaning up on failure..."
+        
+        # Remove generated terraform file if apply failed
+        if [ -f "chaos-experiment-${{ inputs.experiment_name }}.tf" ]; then
+          rm -f chaos-experiment-${{ inputs.experiment_name }}.tf
+          echo "Removed generated Terraform file"
+        fi
+        
+        # Try to remove from state if partially created
+        terraform state rm "azurerm_chaos_studio_experiment.${{ inputs.experiment_name }}" || true
+
+  post-provision:
+    name: Post-Provision Tasks
+    runs-on: ubuntu-latest
+    needs: [validate-inputs, terraform-provision]
+    if: ${{ success() && !inputs.dry_run }}
+    
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Verify Experiment in Azure
+      run: |
+        echo "Verifying experiment ${{ inputs.experiment_name }} in Azure..."
+        
+        # Check if experiment exists
+        EXPERIMENT_ID=$(az rest --method GET \
+          --url "https://management.azure.com/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/eShopCleverRG/providers/Microsoft.Chaos/experiments/${{ inputs.experiment_name }}?api-version=2024-01-01" \
+          --query "id" -o tsv 2>/dev/null || echo "")
+        
+        if [ -n "$EXPERIMENT_ID" ]; then
+          echo "✅ Experiment ${{ inputs.experiment_name }} verified in Azure"
+          echo "Experiment ID: $EXPERIMENT_ID"
+        else
+          echo "❌ Experiment ${{ inputs.experiment_name }} not found in Azure"
+          exit 1
+        fi
+
+    - name: Test Connectivity to AKS
+      run: |
+        echo "Testing connectivity to AKS cluster..."
+        
+        # Get AKS credentials
+        az aks get-credentials --resource-group eShopCleverRG --name eshopcleveraks --overwrite-existing
+        
+        # Check if target namespace exists
+        if kubectl get namespace ${{ inputs.target_namespace }} > /dev/null 2>&1; then
+          echo "✅ Target namespace ${{ inputs.target_namespace }} exists"
+        else
+          echo "⚠️ Target namespace ${{ inputs.target_namespace }} does not exist"
+        fi
+        
+        # Check if target pods exist
+        TARGET_LABELS="${{ inputs.target_labels }}"
+        LABEL_SELECTOR=$(echo "$TARGET_LABELS" | jq -r 'to_entries | map("\(.key)=\(.value)") | join(",")')
+        
+        POD_COUNT=$(kubectl get pods -n ${{ inputs.target_namespace }} -l "$LABEL_SELECTOR" --no-headers 2>/dev/null | wc -l || echo "0")
+        
+        if [ "$POD_COUNT" -gt 0 ]; then
+          echo "✅ Found $POD_COUNT target pod(s) with labels: $LABEL_SELECTOR"
+          kubectl get pods -n ${{ inputs.target_namespace }} -l "$LABEL_SELECTOR"
+        else
+          echo "⚠️ No target pods found with labels: $LABEL_SELECTOR"
+        fi
+
+    - name: Generate Summary Report
+      run: |
+        echo "## 🎯 Chaos Experiment Provisioned Successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Experiment Details" >> $GITHUB_STEP_SUMMARY
+        echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Name | ${{ inputs.experiment_name }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Type | ${{ inputs.experiment_type }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Namespace | ${{ inputs.target_namespace }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Labels | ${{ inputs.target_labels }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Duration | ${{ inputs.duration_minutes }} minutes |" >> $GITHUB_STEP_SUMMARY
+        echo "| Action Duration | ${{ inputs.action_duration }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Selector ID | ${{ needs.validate-inputs.outputs.selector_id }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "1. 🚀 **Run the experiment** via Azure Portal or GitHub Actions" >> $GITHUB_STEP_SUMMARY
+        echo "2. 📊 **Monitor results** through Azure Chaos Studio dashboard" >> $GITHUB_STEP_SUMMARY
+        echo "3. 📝 **Review logs** in Kubernetes and application metrics" >> $GITHUB_STEP_SUMMARY
+        echo "4. 🔄 **Iterate** based on findings" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Files Created" >> $GITHUB_STEP_SUMMARY
+        echo "- \`terraform-export-clean/chaos-experiment-${{ inputs.experiment_name }}.tf\`" >> $GITHUB_STEP_SUMMARY
+        echo "- \`docs/chaos-experiments/${{ inputs.experiment_name }}.md\`" >> $GITHUB_STEP_SUMMARY
