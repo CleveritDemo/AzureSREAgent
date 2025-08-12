@@ -133,6 +133,7 @@ resource "azurerm_chaos_studio_experiment" "network_delay" {
             action = "delay"
             mode = "one"
             duration = "180s"
+            direction = "to"  # Add explicit direction for AKS compatibility
             selector = {
               namespaces = ["eshop"]  # Match existing namespace
               labelSelectors = {
@@ -140,9 +141,18 @@ resource "azurerm_chaos_studio_experiment" "network_delay" {
               }
             }
             delay = {
-              latency = "200ms"
+              latency = "100ms"  # Reduced latency for better AKS compatibility
               correlation = "0"
-              jitter = "10ms"
+              jitter = "5ms"     # Reduced jitter for stability
+            }
+            target = {
+              mode = "one"
+              selector = {
+                namespaces = ["eshop"]
+                labelSelectors = {
+                  "app" = "eshop-webmvc"
+                }
+              }
             }
           })
         }
