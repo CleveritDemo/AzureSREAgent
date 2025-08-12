@@ -1,0 +1,1067 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2025-08-06T17:35:00Z"
+    generateName: eshop-publicapi-75d5965dd9-
+    labels:
+      app: eshop-publicapi
+      pod-template-hash: 75d5965dd9
+    name: eshop-publicapi-75d5965dd9-gcfgl
+    namespace: eshop
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: eshop-publicapi-75d5965dd9
+      uid: 6779bb44-bcc2-48a5-aaa5-5939c9fc1a92
+    resourceVersion: "326623"
+    uid: ab65a5e4-6573-42ee-87d5-fd82f7c3184f
+  spec:
+    containers:
+    - env:
+      - name: ASPNETCORE_ENVIRONMENT
+        valueFrom:
+          configMapKeyRef:
+            key: ASPNETCORE_ENVIRONMENT
+            name: eshop-config
+      - name: UseOnlyInMemoryDatabase
+        valueFrom:
+          secretKeyRef:
+            key: UseOnlyInMemoryDatabase
+            name: eshop-secrets
+      - name: ConnectionStrings__CatalogConnection
+        valueFrom:
+          secretKeyRef:
+            key: ConnectionStrings__CatalogConnection
+            name: eshop-secrets
+      image: eshopcleveracr.azurecr.io/eshoppublicapi:latest
+      imagePullPolicy: Always
+      name: publicapi
+      ports:
+      - containerPort: 8080
+        protocol: TCP
+      resources:
+        limits:
+          cpu: 250m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-9lhwt
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: aks-nodepool1-41409009-vmss000000
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoSchedule
+      key: node.kubernetes.io/memory-pressure
+      operator: Exists
+    volumes:
+    - name: kube-api-access-9lhwt
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:12Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:00Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:29Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:29Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:00Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: containerd://668b4ce58baa69cc41eb7122a1295e49bd0f1d44db112ff5b998a50c543c0c0f
+      image: eshopcleveracr.azurecr.io/eshoppublicapi:latest
+      imageID: eshopcleveracr.azurecr.io/eshoppublicapi@sha256:c05f90d1ef85ee326c909d301ed5fef3dbec2c4740fe18aefae7f1b6a28225ca
+      lastState: {}
+      name: publicapi
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-08-06T17:35:28Z"
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-9lhwt
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.224.0.4
+    hostIPs:
+    - ip: 10.224.0.4
+    phase: Running
+    podIP: 10.244.0.90
+    podIPs:
+    - ip: 10.244.0.90
+    qosClass: Burstable
+    startTime: "2025-08-06T17:35:00Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2025-08-06T17:35:00Z"
+    generateName: eshop-publicapi-75d5965dd9-
+    labels:
+      app: eshop-publicapi
+      pod-template-hash: 75d5965dd9
+    name: eshop-publicapi-75d5965dd9-qc76f
+    namespace: eshop
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: eshop-publicapi-75d5965dd9
+      uid: 6779bb44-bcc2-48a5-aaa5-5939c9fc1a92
+    resourceVersion: "326614"
+    uid: 4fd49c40-ea12-454f-a659-af68d26eec07
+  spec:
+    containers:
+    - env:
+      - name: ASPNETCORE_ENVIRONMENT
+        valueFrom:
+          configMapKeyRef:
+            key: ASPNETCORE_ENVIRONMENT
+            name: eshop-config
+      - name: UseOnlyInMemoryDatabase
+        valueFrom:
+          secretKeyRef:
+            key: UseOnlyInMemoryDatabase
+            name: eshop-secrets
+      - name: ConnectionStrings__CatalogConnection
+        valueFrom:
+          secretKeyRef:
+            key: ConnectionStrings__CatalogConnection
+            name: eshop-secrets
+      image: eshopcleveracr.azurecr.io/eshoppublicapi:latest
+      imagePullPolicy: Always
+      name: publicapi
+      ports:
+      - containerPort: 8080
+        protocol: TCP
+      resources:
+        limits:
+          cpu: 250m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-rrfjb
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: aks-nodepool1-41409009-vmss000000
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoSchedule
+      key: node.kubernetes.io/memory-pressure
+      operator: Exists
+    volumes:
+    - name: kube-api-access-rrfjb
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:12Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:00Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:28Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:28Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:00Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: containerd://daf9129207f4ef58f373e759ae5d3d6bf612dec285fb53d1aa8e87daf4902c38
+      image: eshopcleveracr.azurecr.io/eshoppublicapi:latest
+      imageID: eshopcleveracr.azurecr.io/eshoppublicapi@sha256:c05f90d1ef85ee326c909d301ed5fef3dbec2c4740fe18aefae7f1b6a28225ca
+      lastState: {}
+      name: publicapi
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-08-06T17:35:27Z"
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-rrfjb
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.224.0.4
+    hostIPs:
+    - ip: 10.224.0.4
+    phase: Running
+    podIP: 10.244.0.142
+    podIPs:
+    - ip: 10.244.0.142
+    qosClass: Burstable
+    startTime: "2025-08-06T17:35:00Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2025-08-06T17:35:02Z"
+    generateName: eshop-webmvc-5cd7c6f896-
+    labels:
+      app: eshop-webmvc
+      pod-template-hash: 5cd7c6f896
+    name: eshop-webmvc-5cd7c6f896-9zk97
+    namespace: eshop
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: eshop-webmvc-5cd7c6f896
+      uid: 78b23284-faf9-490e-a19b-3ce77c2b6136
+    resourceVersion: "2493757"
+    uid: 6d8f7cc3-200e-4ea1-9038-d5a2a1e6d16f
+  spec:
+    containers:
+    - env:
+      - name: ASPNETCORE_ENVIRONMENT
+        valueFrom:
+          configMapKeyRef:
+            key: ASPNETCORE_ENVIRONMENT
+            name: eshop-config
+      - name: UseOnlyInMemoryDatabase
+        valueFrom:
+          secretKeyRef:
+            key: UseOnlyInMemoryDatabase
+            name: eshop-secrets
+      - name: ConnectionStrings__CatalogConnection
+        valueFrom:
+          secretKeyRef:
+            key: ConnectionStrings__CatalogConnection
+            name: eshop-secrets
+      - name: ConnectionStrings__IdentityConnection
+        valueFrom:
+          secretKeyRef:
+            key: ConnectionStrings__IdentityConnection
+            name: eshop-secrets
+      - name: baseUrls__webBase
+        valueFrom:
+          configMapKeyRef:
+            key: baseUrls__webBase
+            name: eshop-config
+      - name: baseUrls__apiBase
+        valueFrom:
+          configMapKeyRef:
+            key: baseUrls__apiBase
+            name: eshop-config
+      image: eshopcleveracr.azurecr.io/eshopwebmvc:latest
+      imagePullPolicy: Always
+      name: webmvc
+      ports:
+      - containerPort: 8080
+        protocol: TCP
+      resources:
+        limits:
+          cpu: 400m
+          memory: 1Gi
+        requests:
+          cpu: 200m
+          memory: 512Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-prjzh
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: aks-nodepool1-41409009-vmss000000
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoSchedule
+      key: node.kubernetes.io/memory-pressure
+      operator: Exists
+    volumes:
+    - name: kube-api-access-prjzh
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:13Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:02Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:28Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:28Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:02Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: containerd://d0dd29d93e7d9e1f2bed00bdd232295e214196567d727e8273cc792306c300bd
+      image: eshopcleveracr.azurecr.io/eshopwebmvc:latest
+      imageID: eshopcleveracr.azurecr.io/eshopwebmvc@sha256:3601f60423fcf88862f755c27232274be9d2f2ec77d28a3912332643bd6b7703
+      lastState:
+        terminated:
+          containerID: containerd://1b1330bfd509abdb57d71fa19cfc21ca0601641214c870563c50b9e3f9261625
+          exitCode: 2
+          finishedAt: "2025-08-11T22:09:06Z"
+          reason: Error
+          startedAt: "2025-08-11T22:08:07Z"
+      name: webmvc
+      ready: true
+      restartCount: 8
+      started: true
+      state:
+        running:
+          startedAt: "2025-08-11T22:09:07Z"
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-prjzh
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.224.0.4
+    hostIPs:
+    - ip: 10.224.0.4
+    phase: Running
+    podIP: 10.244.0.6
+    podIPs:
+    - ip: 10.244.0.6
+    qosClass: Burstable
+    startTime: "2025-08-06T17:35:02Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2025-08-06T17:35:02Z"
+    generateName: eshop-webmvc-5cd7c6f896-
+    labels:
+      app: eshop-webmvc
+      pod-template-hash: 5cd7c6f896
+    name: eshop-webmvc-5cd7c6f896-lpg4p
+    namespace: eshop
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: eshop-webmvc-5cd7c6f896
+      uid: 78b23284-faf9-490e-a19b-3ce77c2b6136
+    resourceVersion: "776150"
+    uid: b8564849-4947-44e5-853f-edd74f400cd0
+  spec:
+    containers:
+    - env:
+      - name: ASPNETCORE_ENVIRONMENT
+        valueFrom:
+          configMapKeyRef:
+            key: ASPNETCORE_ENVIRONMENT
+            name: eshop-config
+      - name: UseOnlyInMemoryDatabase
+        valueFrom:
+          secretKeyRef:
+            key: UseOnlyInMemoryDatabase
+            name: eshop-secrets
+      - name: ConnectionStrings__CatalogConnection
+        valueFrom:
+          secretKeyRef:
+            key: ConnectionStrings__CatalogConnection
+            name: eshop-secrets
+      - name: ConnectionStrings__IdentityConnection
+        valueFrom:
+          secretKeyRef:
+            key: ConnectionStrings__IdentityConnection
+            name: eshop-secrets
+      - name: baseUrls__webBase
+        valueFrom:
+          configMapKeyRef:
+            key: baseUrls__webBase
+            name: eshop-config
+      - name: baseUrls__apiBase
+        valueFrom:
+          configMapKeyRef:
+            key: baseUrls__apiBase
+            name: eshop-config
+      image: eshopcleveracr.azurecr.io/eshopwebmvc:latest
+      imagePullPolicy: Always
+      name: webmvc
+      ports:
+      - containerPort: 8080
+        protocol: TCP
+      resources:
+        limits:
+          cpu: 400m
+          memory: 1Gi
+        requests:
+          cpu: 200m
+          memory: 512Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-8hqbn
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: aks-nodepool1-41409009-vmss000000
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoSchedule
+      key: node.kubernetes.io/memory-pressure
+      operator: Exists
+    volumes:
+    - name: kube-api-access-8hqbn
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:14Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:02Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:25Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:25Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-08-06T17:35:02Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: containerd://a412b6210a19fa66fc5c246507c7849e79a02e76eeed852ca1d8daa1b309aace
+      image: eshopcleveracr.azurecr.io/eshopwebmvc:latest
+      imageID: eshopcleveracr.azurecr.io/eshopwebmvc@sha256:3601f60423fcf88862f755c27232274be9d2f2ec77d28a3912332643bd6b7703
+      lastState:
+        terminated:
+          containerID: containerd://f16a10152c87f4c7becb762afc695dc5576725f6a67b6f0158c84e1d9c6c201a
+          exitCode: 2
+          finishedAt: "2025-08-07T19:29:34Z"
+          reason: Error
+          startedAt: "2025-08-07T19:27:36Z"
+      name: webmvc
+      ready: true
+      restartCount: 4
+      started: true
+      state:
+        running:
+          startedAt: "2025-08-07T19:29:35Z"
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-8hqbn
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.224.0.4
+    hostIPs:
+    - ip: 10.224.0.4
+    phase: Running
+    podIP: 10.244.0.155
+    podIPs:
+    - ip: 10.244.0.155
+    qosClass: Burstable
+    startTime: "2025-08-06T17:35:02Z"
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app":"eshop-publicapi"},"name":"eshop-publicapi","namespace":"eshop"},"spec":{"ports":[{"port":80,"protocol":"TCP","targetPort":8080}],"selector":{"app":"eshop-publicapi"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-08-06T17:35:01Z"
+    labels:
+      app: eshop-publicapi
+    name: eshop-publicapi
+    namespace: eshop
+    resourceVersion: "326402"
+    uid: b21bbcec-403d-4fc2-b7b2-c23a62450825
+  spec:
+    clusterIP: 10.0.24.68
+    clusterIPs:
+    - 10.0.24.68
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: eshop-publicapi
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app":"eshop-webmvc"},"name":"eshop-webmvc","namespace":"eshop"},"spec":{"ports":[{"port":80,"protocol":"TCP","targetPort":8080}],"selector":{"app":"eshop-webmvc"},"type":"LoadBalancer"}}
+    creationTimestamp: "2025-08-06T17:35:02Z"
+    finalizers:
+    - service.kubernetes.io/load-balancer-cleanup
+    labels:
+      app: eshop-webmvc
+    name: eshop-webmvc
+    namespace: eshop
+    resourceVersion: "326505"
+    uid: 800ae1c7-4e01-493d-8d70-0019dcf9929c
+  spec:
+    allocateLoadBalancerNodePorts: true
+    clusterIP: 10.0.249.98
+    clusterIPs:
+    - 10.0.249.98
+    externalTrafficPolicy: Cluster
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - nodePort: 32726
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: eshop-webmvc
+    sessionAffinity: None
+    type: LoadBalancer
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 20.253.117.38
+        ipMode: VIP
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "1"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"eshop-publicapi"},"name":"eshop-publicapi","namespace":"eshop"},"spec":{"replicas":2,"selector":{"matchLabels":{"app":"eshop-publicapi"}},"template":{"metadata":{"labels":{"app":"eshop-publicapi"}},"spec":{"containers":[{"env":[{"name":"ASPNETCORE_ENVIRONMENT","valueFrom":{"configMapKeyRef":{"key":"ASPNETCORE_ENVIRONMENT","name":"eshop-config"}}},{"name":"UseOnlyInMemoryDatabase","valueFrom":{"secretKeyRef":{"key":"UseOnlyInMemoryDatabase","name":"eshop-secrets"}}},{"name":"ConnectionStrings__CatalogConnection","valueFrom":{"secretKeyRef":{"key":"ConnectionStrings__CatalogConnection","name":"eshop-secrets"}}}],"image":"eshopcleveracr.azurecr.io/eshoppublicapi:latest","name":"publicapi","ports":[{"containerPort":8080}],"resources":{"limits":{"cpu":"250m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}}]}}}}
+    creationTimestamp: "2025-08-06T17:35:00Z"
+    generation: 1
+    labels:
+      app: eshop-publicapi
+    name: eshop-publicapi
+    namespace: eshop
+    resourceVersion: "326627"
+    uid: 3875acff-9396-4cad-93e6-8ec301cb49ad
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: eshop-publicapi
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: eshop-publicapi
+      spec:
+        containers:
+        - env:
+          - name: ASPNETCORE_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                key: ASPNETCORE_ENVIRONMENT
+                name: eshop-config
+          - name: UseOnlyInMemoryDatabase
+            valueFrom:
+              secretKeyRef:
+                key: UseOnlyInMemoryDatabase
+                name: eshop-secrets
+          - name: ConnectionStrings__CatalogConnection
+            valueFrom:
+              secretKeyRef:
+                key: ConnectionStrings__CatalogConnection
+                name: eshop-secrets
+          image: eshopcleveracr.azurecr.io/eshoppublicapi:latest
+          imagePullPolicy: Always
+          name: publicapi
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 250m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: "2025-08-06T17:35:29Z"
+      lastUpdateTime: "2025-08-06T17:35:29Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2025-08-06T17:35:00Z"
+      lastUpdateTime: "2025-08-06T17:35:29Z"
+      message: ReplicaSet "eshop-publicapi-75d5965dd9" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 2
+    replicas: 2
+    updatedReplicas: 2
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "1"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"eshop-webmvc"},"name":"eshop-webmvc","namespace":"eshop"},"spec":{"replicas":2,"selector":{"matchLabels":{"app":"eshop-webmvc"}},"template":{"metadata":{"labels":{"app":"eshop-webmvc"}},"spec":{"containers":[{"env":[{"name":"ASPNETCORE_ENVIRONMENT","valueFrom":{"configMapKeyRef":{"key":"ASPNETCORE_ENVIRONMENT","name":"eshop-config"}}},{"name":"UseOnlyInMemoryDatabase","valueFrom":{"secretKeyRef":{"key":"UseOnlyInMemoryDatabase","name":"eshop-secrets"}}},{"name":"ConnectionStrings__CatalogConnection","valueFrom":{"secretKeyRef":{"key":"ConnectionStrings__CatalogConnection","name":"eshop-secrets"}}},{"name":"ConnectionStrings__IdentityConnection","valueFrom":{"secretKeyRef":{"key":"ConnectionStrings__IdentityConnection","name":"eshop-secrets"}}},{"name":"baseUrls__webBase","valueFrom":{"configMapKeyRef":{"key":"baseUrls__webBase","name":"eshop-config"}}},{"name":"baseUrls__apiBase","valueFrom":{"configMapKeyRef":{"key":"baseUrls__apiBase","name":"eshop-config"}}}],"image":"eshopcleveracr.azurecr.io/eshopwebmvc:latest","name":"webmvc","ports":[{"containerPort":8080}],"resources":{"limits":{"cpu":"400m","memory":"1Gi"},"requests":{"cpu":"200m","memory":"512Mi"}}}]}}}}
+    creationTimestamp: "2025-08-06T17:35:02Z"
+    generation: 1
+    labels:
+      app: eshop-webmvc
+    name: eshop-webmvc
+    namespace: eshop
+    resourceVersion: "326613"
+    uid: e65fe9df-dc77-42fb-a250-a29f9441bae7
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: eshop-webmvc
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: eshop-webmvc
+      spec:
+        containers:
+        - env:
+          - name: ASPNETCORE_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                key: ASPNETCORE_ENVIRONMENT
+                name: eshop-config
+          - name: UseOnlyInMemoryDatabase
+            valueFrom:
+              secretKeyRef:
+                key: UseOnlyInMemoryDatabase
+                name: eshop-secrets
+          - name: ConnectionStrings__CatalogConnection
+            valueFrom:
+              secretKeyRef:
+                key: ConnectionStrings__CatalogConnection
+                name: eshop-secrets
+          - name: ConnectionStrings__IdentityConnection
+            valueFrom:
+              secretKeyRef:
+                key: ConnectionStrings__IdentityConnection
+                name: eshop-secrets
+          - name: baseUrls__webBase
+            valueFrom:
+              configMapKeyRef:
+                key: baseUrls__webBase
+                name: eshop-config
+          - name: baseUrls__apiBase
+            valueFrom:
+              configMapKeyRef:
+                key: baseUrls__apiBase
+                name: eshop-config
+          image: eshopcleveracr.azurecr.io/eshopwebmvc:latest
+          imagePullPolicy: Always
+          name: webmvc
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 400m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: "2025-08-06T17:35:28Z"
+      lastUpdateTime: "2025-08-06T17:35:28Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2025-08-06T17:35:02Z"
+      lastUpdateTime: "2025-08-06T17:35:28Z"
+      message: ReplicaSet "eshop-webmvc-5cd7c6f896" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 2
+    replicas: 2
+    updatedReplicas: 2
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "1"
+    creationTimestamp: "2025-08-06T17:35:00Z"
+    generation: 1
+    labels:
+      app: eshop-publicapi
+      pod-template-hash: 75d5965dd9
+    name: eshop-publicapi-75d5965dd9
+    namespace: eshop
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: eshop-publicapi
+      uid: 3875acff-9396-4cad-93e6-8ec301cb49ad
+    resourceVersion: "326626"
+    uid: 6779bb44-bcc2-48a5-aaa5-5939c9fc1a92
+  spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app: eshop-publicapi
+        pod-template-hash: 75d5965dd9
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: eshop-publicapi
+          pod-template-hash: 75d5965dd9
+      spec:
+        containers:
+        - env:
+          - name: ASPNETCORE_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                key: ASPNETCORE_ENVIRONMENT
+                name: eshop-config
+          - name: UseOnlyInMemoryDatabase
+            valueFrom:
+              secretKeyRef:
+                key: UseOnlyInMemoryDatabase
+                name: eshop-secrets
+          - name: ConnectionStrings__CatalogConnection
+            valueFrom:
+              secretKeyRef:
+                key: ConnectionStrings__CatalogConnection
+                name: eshop-secrets
+          image: eshopcleveracr.azurecr.io/eshoppublicapi:latest
+          imagePullPolicy: Always
+          name: publicapi
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 250m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    fullyLabeledReplicas: 2
+    observedGeneration: 1
+    readyReplicas: 2
+    replicas: 2
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "1"
+    creationTimestamp: "2025-08-06T17:35:02Z"
+    generation: 1
+    labels:
+      app: eshop-webmvc
+      pod-template-hash: 5cd7c6f896
+    name: eshop-webmvc-5cd7c6f896
+    namespace: eshop
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: eshop-webmvc
+      uid: e65fe9df-dc77-42fb-a250-a29f9441bae7
+    resourceVersion: "326612"
+    uid: 78b23284-faf9-490e-a19b-3ce77c2b6136
+  spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app: eshop-webmvc
+        pod-template-hash: 5cd7c6f896
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: eshop-webmvc
+          pod-template-hash: 5cd7c6f896
+      spec:
+        containers:
+        - env:
+          - name: ASPNETCORE_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                key: ASPNETCORE_ENVIRONMENT
+                name: eshop-config
+          - name: UseOnlyInMemoryDatabase
+            valueFrom:
+              secretKeyRef:
+                key: UseOnlyInMemoryDatabase
+                name: eshop-secrets
+          - name: ConnectionStrings__CatalogConnection
+            valueFrom:
+              secretKeyRef:
+                key: ConnectionStrings__CatalogConnection
+                name: eshop-secrets
+          - name: ConnectionStrings__IdentityConnection
+            valueFrom:
+              secretKeyRef:
+                key: ConnectionStrings__IdentityConnection
+                name: eshop-secrets
+          - name: baseUrls__webBase
+            valueFrom:
+              configMapKeyRef:
+                key: baseUrls__webBase
+                name: eshop-config
+          - name: baseUrls__apiBase
+            valueFrom:
+              configMapKeyRef:
+                key: baseUrls__apiBase
+                name: eshop-config
+          image: eshopcleveracr.azurecr.io/eshopwebmvc:latest
+          imagePullPolicy: Always
+          name: webmvc
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 400m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    fullyLabeledReplicas: 2
+    observedGeneration: 1
+    readyReplicas: 2
+    replicas: 2
+kind: List
+metadata:
+  resourceVersion: ""

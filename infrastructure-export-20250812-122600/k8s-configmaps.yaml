@@ -1,0 +1,623 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  data:
+    Corefile: |
+      .:5353 {
+          errors
+          health {
+              lameduck 5s
+          }
+          ready
+          k8s_dns_chaos cluster.local in-addr.arpa ip6.arpa {
+              pods insecure
+              fallthrough in-addr.arpa ip6.arpa
+              ttl 30
+              grpcport 9288
+          }
+          prometheus :9153
+          forward . /etc/resolv.conf {
+              max_concurrent 1000
+          }
+          cache 30
+          loop
+          reload
+          loadbalance
+      }
+  kind: ConfigMap
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: chaos-mesh
+      meta.helm.sh/release-namespace: chaos-testing
+    creationTimestamp: "2025-08-11T20:02:53Z"
+    labels:
+      app.kubernetes.io/component: chaos-dns-server
+      app.kubernetes.io/instance: chaos-mesh
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: chaos-mesh
+      app.kubernetes.io/part-of: chaos-mesh
+      app.kubernetes.io/version: 2.7.2
+      helm.sh/chart: chaos-mesh-2.7.2
+    name: dns-server-config
+    namespace: chaos-testing
+    resourceVersion: "2456817"
+    uid: daebeeab-f606-4f45-982a-35f113f3f5ed
+- apiVersion: v1
+  data:
+    ca.crt: |
+      -----BEGIN CERTIFICATE-----
+      MIIE6TCCAtGgAwIBAgIRALLXsaUs5KSEqjjmrvOjFxgwDQYJKoZIhvcNAQELBQAw
+      DTELMAkGA1UEAxMCY2EwIBcNMjUwODA1MjAzNDQ5WhgPMjA1NTA4MDUyMDQ0NDla
+      MA0xCzAJBgNVBAMTAmNhMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA
+      ug0d7nZ5Zvr2Xi20t2D083+FntoSoltfvy33kBZLUIs33qrFQW/sg3keyrQzFNIa
+      Mj6YyYXefBSETR8zKJD9t6Nz9RM/NOmxJLi4cVfQtj9iDT0UiFZuEFcvcztZTMTa
+      iZMD7SACCdSEvb1DTdODBbpuLzW4R+rvjEE5OozXrabwuNv4pOJHTn0oLZyQ66tE
+      aRBAUwGfYn6TUjO9nQQqxLfCG/6PnGkkoUUZgaQsk4jPPblomErZvgBK3aFLp7GY
+      HnmtodpKTdZts236PA0TNV+R7IjQGyhIIPxeaumi4pSTWWUCteHHNC3ETB6tXRIf
+      /pxugNjtBHa7NAWAhlBcRFDcYmGzE4EIGnsIO/kciF6HLPrjYzkfE6+Sf5e8TUre
+      sXyyyQYeY8/KfAO9mo0ijgV+VEaoqzZAfN7Nt6Bh1YQF13I3UlySfsC2tfCM7L3f
+      3Qu/Vtjv2WXfzBMfnVPi1QJcCdvOgFAVSWREprYYxUaARnLvheFCt6kIzJW+TKS7
+      P5dr7N5VE/TRz98FXab5B1r+sHFJbrT/mxzbaXi06IAdAVgpMx7tQ88y5PIXIzPV
+      ou+LKQ7RY9z7g/Cw4KOZNdgdtkEuEg9H9vIsmXWotxg6RHWQQac/Si2ORgbsDD3f
+      IzuEEUPZ1k7TW4ddfZDOjT9cNyu9cjn9VZ7s0LVnDLMCAwEAAaNCMEAwDgYDVR0P
+      AQH/BAQDAgKkMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFKW0jGgrtoAMQVLt
+      gqMnWXrigQoFMA0GCSqGSIb3DQEBCwUAA4ICAQAP4ebLHQhyNblj+AhvNGHg3629
+      jIG2hg2EbYl0voKd/mCbVlmYujSgveJbUhDrwOpvbZuBf992h0QSGiqybRfNSX6X
+      YuTBYBq0vYLo99jWb9MCpgpEVXPblAxZdfn3/PV0BsP9Jsdhv3g9b8WttaXeOrV/
+      3ravxqCHGM6IuaZ1AdTcFkzFx9oLsPprIJqqeTf8Yo9IrBQdHKVWG8jJKvfaMpSj
+      6dPjRy2DF4jUxGnPhksu+E6r5cWCI4yGAN325B4XSCtzjMmMA6L7bMCjcCiF8vq/
+      +SAeeeXxLbGZ4sOuocLwW2c0F7U3PYcUVRxtKAMwklL0zEm73rgKMhl/3CY9oMFp
+      kqZPx+OqwQwOdCRaJoBoPlf6UOiEDS7+HPl6AH6+CurZAdCoZLzwd6vw/UjpXBOW
+      9bNSPoms/JMU27BaNf964T91VkekHc2eM3CVd5PUDn/bxrhTfu/QFOSBl42ZcVRA
+      68HjaLqwwrG37IWQwR+tDslzNDytHjiw1GQwIPwqyYzGQWLeGKQFHJ369a/U6HaT
+      +OPkC26/aRhZZDiGiOKAbZh0iHmi6POkXsRGgbN36f3NUkN3WSyjgXCVAYfCU+TZ
+      kachUs0DJ9YUlxj9rd/8g8gk7waWqHA05napw4V8pl2lY+LTwZQEJK7wtQGqOrOo
+      DCCmPbk2h2BfPAVCGA==
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubernetes.io/description: Contains a CA bundle that can be used to verify the
+        kube-apiserver when using internal endpoints such as the internal service
+        IP or kubernetes.default.svc. No other usage is guaranteed across distributions
+        of Kubernetes clusters.
+    creationTimestamp: "2025-08-11T19:58:56Z"
+    name: kube-root-ca.crt
+    namespace: chaos-testing
+    resourceVersion: "2455621"
+    uid: 0b9c7cc3-72dd-4fd7-887e-8498cb0c50d6
+- apiVersion: v1
+  data:
+    ca.crt: |
+      -----BEGIN CERTIFICATE-----
+      MIIE6TCCAtGgAwIBAgIRALLXsaUs5KSEqjjmrvOjFxgwDQYJKoZIhvcNAQELBQAw
+      DTELMAkGA1UEAxMCY2EwIBcNMjUwODA1MjAzNDQ5WhgPMjA1NTA4MDUyMDQ0NDla
+      MA0xCzAJBgNVBAMTAmNhMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA
+      ug0d7nZ5Zvr2Xi20t2D083+FntoSoltfvy33kBZLUIs33qrFQW/sg3keyrQzFNIa
+      Mj6YyYXefBSETR8zKJD9t6Nz9RM/NOmxJLi4cVfQtj9iDT0UiFZuEFcvcztZTMTa
+      iZMD7SACCdSEvb1DTdODBbpuLzW4R+rvjEE5OozXrabwuNv4pOJHTn0oLZyQ66tE
+      aRBAUwGfYn6TUjO9nQQqxLfCG/6PnGkkoUUZgaQsk4jPPblomErZvgBK3aFLp7GY
+      HnmtodpKTdZts236PA0TNV+R7IjQGyhIIPxeaumi4pSTWWUCteHHNC3ETB6tXRIf
+      /pxugNjtBHa7NAWAhlBcRFDcYmGzE4EIGnsIO/kciF6HLPrjYzkfE6+Sf5e8TUre
+      sXyyyQYeY8/KfAO9mo0ijgV+VEaoqzZAfN7Nt6Bh1YQF13I3UlySfsC2tfCM7L3f
+      3Qu/Vtjv2WXfzBMfnVPi1QJcCdvOgFAVSWREprYYxUaARnLvheFCt6kIzJW+TKS7
+      P5dr7N5VE/TRz98FXab5B1r+sHFJbrT/mxzbaXi06IAdAVgpMx7tQ88y5PIXIzPV
+      ou+LKQ7RY9z7g/Cw4KOZNdgdtkEuEg9H9vIsmXWotxg6RHWQQac/Si2ORgbsDD3f
+      IzuEEUPZ1k7TW4ddfZDOjT9cNyu9cjn9VZ7s0LVnDLMCAwEAAaNCMEAwDgYDVR0P
+      AQH/BAQDAgKkMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFKW0jGgrtoAMQVLt
+      gqMnWXrigQoFMA0GCSqGSIb3DQEBCwUAA4ICAQAP4ebLHQhyNblj+AhvNGHg3629
+      jIG2hg2EbYl0voKd/mCbVlmYujSgveJbUhDrwOpvbZuBf992h0QSGiqybRfNSX6X
+      YuTBYBq0vYLo99jWb9MCpgpEVXPblAxZdfn3/PV0BsP9Jsdhv3g9b8WttaXeOrV/
+      3ravxqCHGM6IuaZ1AdTcFkzFx9oLsPprIJqqeTf8Yo9IrBQdHKVWG8jJKvfaMpSj
+      6dPjRy2DF4jUxGnPhksu+E6r5cWCI4yGAN325B4XSCtzjMmMA6L7bMCjcCiF8vq/
+      +SAeeeXxLbGZ4sOuocLwW2c0F7U3PYcUVRxtKAMwklL0zEm73rgKMhl/3CY9oMFp
+      kqZPx+OqwQwOdCRaJoBoPlf6UOiEDS7+HPl6AH6+CurZAdCoZLzwd6vw/UjpXBOW
+      9bNSPoms/JMU27BaNf964T91VkekHc2eM3CVd5PUDn/bxrhTfu/QFOSBl42ZcVRA
+      68HjaLqwwrG37IWQwR+tDslzNDytHjiw1GQwIPwqyYzGQWLeGKQFHJ369a/U6HaT
+      +OPkC26/aRhZZDiGiOKAbZh0iHmi6POkXsRGgbN36f3NUkN3WSyjgXCVAYfCU+TZ
+      kachUs0DJ9YUlxj9rd/8g8gk7waWqHA05napw4V8pl2lY+LTwZQEJK7wtQGqOrOo
+      DCCmPbk2h2BfPAVCGA==
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubernetes.io/description: Contains a CA bundle that can be used to verify the
+        kube-apiserver when using internal endpoints such as the internal service
+        IP or kubernetes.default.svc. No other usage is guaranteed across distributions
+        of Kubernetes clusters.
+    creationTimestamp: "2025-08-05T20:46:03Z"
+    name: kube-root-ca.crt
+    namespace: default
+    resourceVersion: "366"
+    uid: 128d5c5d-984a-4d9a-907c-e1b4ade80376
+- apiVersion: v1
+  data:
+    ASPNETCORE_ENVIRONMENT: Docker
+    UseOnlyInMemoryDatabase: "false"
+    baseUrls__apiBase: http://eshop-publicapi.eshop.svc.cluster.local/api/
+    baseUrls__webBase: http://4.156.189.241
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"ASPNETCORE_ENVIRONMENT":"Docker","UseOnlyInMemoryDatabase":"false","baseUrls__apiBase":"http://eshop-publicapi.eshop.svc.cluster.local/api/","baseUrls__webBase":"http://4.156.189.241"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"eshop-config","namespace":"eshop"}}
+    creationTimestamp: "2025-08-06T17:35:18Z"
+    name: eshop-config
+    namespace: eshop
+    resourceVersion: "326544"
+    uid: 6288c14c-4ce7-4315-b4b2-c8d575809041
+- apiVersion: v1
+  data:
+    ca.crt: |
+      -----BEGIN CERTIFICATE-----
+      MIIE6TCCAtGgAwIBAgIRALLXsaUs5KSEqjjmrvOjFxgwDQYJKoZIhvcNAQELBQAw
+      DTELMAkGA1UEAxMCY2EwIBcNMjUwODA1MjAzNDQ5WhgPMjA1NTA4MDUyMDQ0NDla
+      MA0xCzAJBgNVBAMTAmNhMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA
+      ug0d7nZ5Zvr2Xi20t2D083+FntoSoltfvy33kBZLUIs33qrFQW/sg3keyrQzFNIa
+      Mj6YyYXefBSETR8zKJD9t6Nz9RM/NOmxJLi4cVfQtj9iDT0UiFZuEFcvcztZTMTa
+      iZMD7SACCdSEvb1DTdODBbpuLzW4R+rvjEE5OozXrabwuNv4pOJHTn0oLZyQ66tE
+      aRBAUwGfYn6TUjO9nQQqxLfCG/6PnGkkoUUZgaQsk4jPPblomErZvgBK3aFLp7GY
+      HnmtodpKTdZts236PA0TNV+R7IjQGyhIIPxeaumi4pSTWWUCteHHNC3ETB6tXRIf
+      /pxugNjtBHa7NAWAhlBcRFDcYmGzE4EIGnsIO/kciF6HLPrjYzkfE6+Sf5e8TUre
+      sXyyyQYeY8/KfAO9mo0ijgV+VEaoqzZAfN7Nt6Bh1YQF13I3UlySfsC2tfCM7L3f
+      3Qu/Vtjv2WXfzBMfnVPi1QJcCdvOgFAVSWREprYYxUaARnLvheFCt6kIzJW+TKS7
+      P5dr7N5VE/TRz98FXab5B1r+sHFJbrT/mxzbaXi06IAdAVgpMx7tQ88y5PIXIzPV
+      ou+LKQ7RY9z7g/Cw4KOZNdgdtkEuEg9H9vIsmXWotxg6RHWQQac/Si2ORgbsDD3f
+      IzuEEUPZ1k7TW4ddfZDOjT9cNyu9cjn9VZ7s0LVnDLMCAwEAAaNCMEAwDgYDVR0P
+      AQH/BAQDAgKkMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFKW0jGgrtoAMQVLt
+      gqMnWXrigQoFMA0GCSqGSIb3DQEBCwUAA4ICAQAP4ebLHQhyNblj+AhvNGHg3629
+      jIG2hg2EbYl0voKd/mCbVlmYujSgveJbUhDrwOpvbZuBf992h0QSGiqybRfNSX6X
+      YuTBYBq0vYLo99jWb9MCpgpEVXPblAxZdfn3/PV0BsP9Jsdhv3g9b8WttaXeOrV/
+      3ravxqCHGM6IuaZ1AdTcFkzFx9oLsPprIJqqeTf8Yo9IrBQdHKVWG8jJKvfaMpSj
+      6dPjRy2DF4jUxGnPhksu+E6r5cWCI4yGAN325B4XSCtzjMmMA6L7bMCjcCiF8vq/
+      +SAeeeXxLbGZ4sOuocLwW2c0F7U3PYcUVRxtKAMwklL0zEm73rgKMhl/3CY9oMFp
+      kqZPx+OqwQwOdCRaJoBoPlf6UOiEDS7+HPl6AH6+CurZAdCoZLzwd6vw/UjpXBOW
+      9bNSPoms/JMU27BaNf964T91VkekHc2eM3CVd5PUDn/bxrhTfu/QFOSBl42ZcVRA
+      68HjaLqwwrG37IWQwR+tDslzNDytHjiw1GQwIPwqyYzGQWLeGKQFHJ369a/U6HaT
+      +OPkC26/aRhZZDiGiOKAbZh0iHmi6POkXsRGgbN36f3NUkN3WSyjgXCVAYfCU+TZ
+      kachUs0DJ9YUlxj9rd/8g8gk7waWqHA05napw4V8pl2lY+LTwZQEJK7wtQGqOrOo
+      DCCmPbk2h2BfPAVCGA==
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubernetes.io/description: Contains a CA bundle that can be used to verify the
+        kube-apiserver when using internal endpoints such as the internal service
+        IP or kubernetes.default.svc. No other usage is guaranteed across distributions
+        of Kubernetes clusters.
+    creationTimestamp: "2025-08-06T17:35:00Z"
+    name: kube-root-ca.crt
+    namespace: eshop
+    resourceVersion: "326379"
+    uid: 8277a8f7-157b-4a35-a2b8-d73f3604b93f
+- apiVersion: v1
+  data:
+    ca.crt: |
+      -----BEGIN CERTIFICATE-----
+      MIIE6TCCAtGgAwIBAgIRALLXsaUs5KSEqjjmrvOjFxgwDQYJKoZIhvcNAQELBQAw
+      DTELMAkGA1UEAxMCY2EwIBcNMjUwODA1MjAzNDQ5WhgPMjA1NTA4MDUyMDQ0NDla
+      MA0xCzAJBgNVBAMTAmNhMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA
+      ug0d7nZ5Zvr2Xi20t2D083+FntoSoltfvy33kBZLUIs33qrFQW/sg3keyrQzFNIa
+      Mj6YyYXefBSETR8zKJD9t6Nz9RM/NOmxJLi4cVfQtj9iDT0UiFZuEFcvcztZTMTa
+      iZMD7SACCdSEvb1DTdODBbpuLzW4R+rvjEE5OozXrabwuNv4pOJHTn0oLZyQ66tE
+      aRBAUwGfYn6TUjO9nQQqxLfCG/6PnGkkoUUZgaQsk4jPPblomErZvgBK3aFLp7GY
+      HnmtodpKTdZts236PA0TNV+R7IjQGyhIIPxeaumi4pSTWWUCteHHNC3ETB6tXRIf
+      /pxugNjtBHa7NAWAhlBcRFDcYmGzE4EIGnsIO/kciF6HLPrjYzkfE6+Sf5e8TUre
+      sXyyyQYeY8/KfAO9mo0ijgV+VEaoqzZAfN7Nt6Bh1YQF13I3UlySfsC2tfCM7L3f
+      3Qu/Vtjv2WXfzBMfnVPi1QJcCdvOgFAVSWREprYYxUaARnLvheFCt6kIzJW+TKS7
+      P5dr7N5VE/TRz98FXab5B1r+sHFJbrT/mxzbaXi06IAdAVgpMx7tQ88y5PIXIzPV
+      ou+LKQ7RY9z7g/Cw4KOZNdgdtkEuEg9H9vIsmXWotxg6RHWQQac/Si2ORgbsDD3f
+      IzuEEUPZ1k7TW4ddfZDOjT9cNyu9cjn9VZ7s0LVnDLMCAwEAAaNCMEAwDgYDVR0P
+      AQH/BAQDAgKkMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFKW0jGgrtoAMQVLt
+      gqMnWXrigQoFMA0GCSqGSIb3DQEBCwUAA4ICAQAP4ebLHQhyNblj+AhvNGHg3629
+      jIG2hg2EbYl0voKd/mCbVlmYujSgveJbUhDrwOpvbZuBf992h0QSGiqybRfNSX6X
+      YuTBYBq0vYLo99jWb9MCpgpEVXPblAxZdfn3/PV0BsP9Jsdhv3g9b8WttaXeOrV/
+      3ravxqCHGM6IuaZ1AdTcFkzFx9oLsPprIJqqeTf8Yo9IrBQdHKVWG8jJKvfaMpSj
+      6dPjRy2DF4jUxGnPhksu+E6r5cWCI4yGAN325B4XSCtzjMmMA6L7bMCjcCiF8vq/
+      +SAeeeXxLbGZ4sOuocLwW2c0F7U3PYcUVRxtKAMwklL0zEm73rgKMhl/3CY9oMFp
+      kqZPx+OqwQwOdCRaJoBoPlf6UOiEDS7+HPl6AH6+CurZAdCoZLzwd6vw/UjpXBOW
+      9bNSPoms/JMU27BaNf964T91VkekHc2eM3CVd5PUDn/bxrhTfu/QFOSBl42ZcVRA
+      68HjaLqwwrG37IWQwR+tDslzNDytHjiw1GQwIPwqyYzGQWLeGKQFHJ369a/U6HaT
+      +OPkC26/aRhZZDiGiOKAbZh0iHmi6POkXsRGgbN36f3NUkN3WSyjgXCVAYfCU+TZ
+      kachUs0DJ9YUlxj9rd/8g8gk7waWqHA05napw4V8pl2lY+LTwZQEJK7wtQGqOrOo
+      DCCmPbk2h2BfPAVCGA==
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubernetes.io/description: Contains a CA bundle that can be used to verify the
+        kube-apiserver when using internal endpoints such as the internal service
+        IP or kubernetes.default.svc. No other usage is guaranteed across distributions
+        of Kubernetes clusters.
+    creationTimestamp: "2025-08-05T20:46:03Z"
+    name: kube-root-ca.crt
+    namespace: kube-node-lease
+    resourceVersion: "367"
+    uid: 3a641ebd-04ba-4785-a439-5bf0b0702140
+- apiVersion: v1
+  data:
+    ca.crt: |
+      -----BEGIN CERTIFICATE-----
+      MIIE6TCCAtGgAwIBAgIRALLXsaUs5KSEqjjmrvOjFxgwDQYJKoZIhvcNAQELBQAw
+      DTELMAkGA1UEAxMCY2EwIBcNMjUwODA1MjAzNDQ5WhgPMjA1NTA4MDUyMDQ0NDla
+      MA0xCzAJBgNVBAMTAmNhMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA
+      ug0d7nZ5Zvr2Xi20t2D083+FntoSoltfvy33kBZLUIs33qrFQW/sg3keyrQzFNIa
+      Mj6YyYXefBSETR8zKJD9t6Nz9RM/NOmxJLi4cVfQtj9iDT0UiFZuEFcvcztZTMTa
+      iZMD7SACCdSEvb1DTdODBbpuLzW4R+rvjEE5OozXrabwuNv4pOJHTn0oLZyQ66tE
+      aRBAUwGfYn6TUjO9nQQqxLfCG/6PnGkkoUUZgaQsk4jPPblomErZvgBK3aFLp7GY
+      HnmtodpKTdZts236PA0TNV+R7IjQGyhIIPxeaumi4pSTWWUCteHHNC3ETB6tXRIf
+      /pxugNjtBHa7NAWAhlBcRFDcYmGzE4EIGnsIO/kciF6HLPrjYzkfE6+Sf5e8TUre
+      sXyyyQYeY8/KfAO9mo0ijgV+VEaoqzZAfN7Nt6Bh1YQF13I3UlySfsC2tfCM7L3f
+      3Qu/Vtjv2WXfzBMfnVPi1QJcCdvOgFAVSWREprYYxUaARnLvheFCt6kIzJW+TKS7
+      P5dr7N5VE/TRz98FXab5B1r+sHFJbrT/mxzbaXi06IAdAVgpMx7tQ88y5PIXIzPV
+      ou+LKQ7RY9z7g/Cw4KOZNdgdtkEuEg9H9vIsmXWotxg6RHWQQac/Si2ORgbsDD3f
+      IzuEEUPZ1k7TW4ddfZDOjT9cNyu9cjn9VZ7s0LVnDLMCAwEAAaNCMEAwDgYDVR0P
+      AQH/BAQDAgKkMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFKW0jGgrtoAMQVLt
+      gqMnWXrigQoFMA0GCSqGSIb3DQEBCwUAA4ICAQAP4ebLHQhyNblj+AhvNGHg3629
+      jIG2hg2EbYl0voKd/mCbVlmYujSgveJbUhDrwOpvbZuBf992h0QSGiqybRfNSX6X
+      YuTBYBq0vYLo99jWb9MCpgpEVXPblAxZdfn3/PV0BsP9Jsdhv3g9b8WttaXeOrV/
+      3ravxqCHGM6IuaZ1AdTcFkzFx9oLsPprIJqqeTf8Yo9IrBQdHKVWG8jJKvfaMpSj
+      6dPjRy2DF4jUxGnPhksu+E6r5cWCI4yGAN325B4XSCtzjMmMA6L7bMCjcCiF8vq/
+      +SAeeeXxLbGZ4sOuocLwW2c0F7U3PYcUVRxtKAMwklL0zEm73rgKMhl/3CY9oMFp
+      kqZPx+OqwQwOdCRaJoBoPlf6UOiEDS7+HPl6AH6+CurZAdCoZLzwd6vw/UjpXBOW
+      9bNSPoms/JMU27BaNf964T91VkekHc2eM3CVd5PUDn/bxrhTfu/QFOSBl42ZcVRA
+      68HjaLqwwrG37IWQwR+tDslzNDytHjiw1GQwIPwqyYzGQWLeGKQFHJ369a/U6HaT
+      +OPkC26/aRhZZDiGiOKAbZh0iHmi6POkXsRGgbN36f3NUkN3WSyjgXCVAYfCU+TZ
+      kachUs0DJ9YUlxj9rd/8g8gk7waWqHA05napw4V8pl2lY+LTwZQEJK7wtQGqOrOo
+      DCCmPbk2h2BfPAVCGA==
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubernetes.io/description: Contains a CA bundle that can be used to verify the
+        kube-apiserver when using internal endpoints such as the internal service
+        IP or kubernetes.default.svc. No other usage is guaranteed across distributions
+        of Kubernetes clusters.
+    creationTimestamp: "2025-08-05T20:46:03Z"
+    name: kube-root-ca.crt
+    namespace: kube-public
+    resourceVersion: "368"
+    uid: ed5a2c77-8e2d-4436-8382-efc15f2edc95
+- apiVersion: v1
+  data:
+    ip-masq-agent-reconciled: |
+      MasqLinkLocal: true
+      NonMasqueradeCIDRs:
+      - 10.244.0.0/16
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: "2025-08-05T20:45:48Z"
+    labels:
+      app.kubernetes.io/managed-by: Eno
+      component: ip-masq-agent
+    name: azure-ip-masq-agent-config-reconciled
+    namespace: kube-system
+    resourceVersion: "238"
+    uid: 6b55de8d-f532-4d9a-b4f2-eb2e32388f39
+- apiVersion: v1
+  data:
+    cns_config.json: |-
+      {
+        "CNIConflistFilepath": "/etc/cni/net.d/15-azure-swift-overlay.conflist",
+        "CNIConflistScenario": "v4overlay",
+        "ChannelMode": "CRD",
+        "EnableAsyncPodDelete": true,
+        "EnableCNIConflistGeneration": true,
+        "EnableIPAMv2": false,
+        "EnableK8sDevicePlugin": false,
+        "EnableStateMigration": false,
+        "EnableSubnetScarcity": false,
+        "InitializeFromCNI": true,
+        "ManageEndpointState": false,
+        "ManagedSettings": {
+          "InfrastructureNetworkID": "",
+          "NodeID": "",
+          "NodeSyncIntervalInSeconds": 30,
+          "PrivateEndpoint": ""
+        },
+        "MetricsBindAddress": ":10092",
+        "ProgramSNATIPTables": false,
+        "TelemetrySettings": {
+          "DebugMode": false,
+          "DisableAll": false,
+          "HeartBeatIntervalInMins": 30,
+          "RefreshIntervalInSecs": 15,
+          "SnapshotIntervalInMins": 60,
+          "TelemetryBatchIntervalInSecs": 15,
+          "TelemetryBatchSizeBytes": 16384
+        }
+      }
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: "2025-08-05T20:45:48Z"
+    name: cns-config
+    namespace: kube-system
+    resourceVersion: "241"
+    uid: 07ed6127-fef3-4a7f-b1d2-bad3bdd7f10b
+- apiVersion: v1
+  data:
+    cns_config.json: |-
+      {
+        "CNIConflistFilepath": "C:\\k\\azurecni\\netconf\\10-azure.conflist",
+        "CNIConflistScenario": "v4overlay",
+        "ChannelMode": "CRD",
+        "EnableAsyncPodDelete": true,
+        "EnableCNIConflistGeneration": false,
+        "EnableIPAMv2": false,
+        "EnableK8sDevicePlugin": false,
+        "EnableStateMigration": false,
+        "EnableSubnetScarcity": false,
+        "InitializeFromCNI": false,
+        "ManageEndpointState": true,
+        "ManagedSettings": {
+          "InfrastructureNetworkID": "",
+          "NodeID": "",
+          "NodeSyncIntervalInSeconds": 30,
+          "PrivateEndpoint": ""
+        },
+        "MetricsBindAddress": ":10092",
+        "ProgramSNATIPTables": false,
+        "TelemetrySettings": {
+          "DebugMode": false,
+          "DisableAll": false,
+          "HeartBeatIntervalInMins": 30,
+          "RefreshIntervalInSecs": 15,
+          "SnapshotIntervalInMins": 60,
+          "TelemetryBatchIntervalInSecs": 15,
+          "TelemetryBatchSizeBytes": 16384
+        }
+      }
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: "2025-08-05T20:45:48Z"
+    name: cns-win-config
+    namespace: kube-system
+    resourceVersion: "243"
+    uid: d73ddc7b-e0c5-4507-9dd6-7a57ee97e0f9
+- apiVersion: v1
+  data:
+    Corefile: |
+      .:53 {
+          errors
+          ready
+          health {
+            lameduck 5s
+          }
+          kubernetes cluster.local in-addr.arpa ip6.arpa {
+            pods insecure
+            fallthrough in-addr.arpa ip6.arpa
+            ttl 30
+          }
+          prometheus :9153
+          forward . /etc/resolv.conf
+          cache 30
+          loop
+          reload
+          loadbalance
+          import custom/*.override
+          template ANY ANY internal.cloudapp.net {
+            match "^(?:[^.]+\.){4,}internal\.cloudapp\.net\.$"
+            rcode NXDOMAIN
+            fallthrough
+          }
+          template ANY ANY reddog.microsoft.com {
+            rcode NXDOMAIN
+          }
+      }
+      import custom/*.server
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"Corefile":".:53 {\n    errors\n    ready\n    health {\n      lameduck 5s\n    }\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n      pods insecure\n      fallthrough in-addr.arpa ip6.arpa\n      ttl 30\n    }\n    prometheus :9153\n    forward . /etc/resolv.conf\n    cache 30\n    loop\n    reload\n    loadbalance\n    import custom/*.override\n    template ANY ANY internal.cloudapp.net {\n      match \"^(?:[^.]+\\.){4,}internal\\.cloudapp\\.net\\.$\"\n      rcode NXDOMAIN\n      fallthrough\n    }\n    template ANY ANY reddog.microsoft.com {\n      rcode NXDOMAIN\n    }\n}\nimport custom/*.server\n"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"addonmanager.kubernetes.io/mode":"Reconcile","k8s-app":"kube-dns","kubernetes.io/cluster-service":"true"},"name":"coredns","namespace":"kube-system"}}
+    creationTimestamp: "2025-08-05T20:46:20Z"
+    labels:
+      addonmanager.kubernetes.io/mode: Reconcile
+      k8s-app: kube-dns
+      kubernetes.io/cluster-service: "true"
+    name: coredns
+    namespace: kube-system
+    resourceVersion: "509"
+    uid: 00c4c7b6-c719-4507-b949-1329638a8374
+- apiVersion: v1
+  data:
+    ladder: '{"coresToReplicas":[[1,2],[512,3],[1024,4],[2048,5]],"nodesToReplicas":[[1,2],[8,3],[16,4],[32,5]]}'
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: "2025-08-05T20:47:50Z"
+    name: coredns-autoscaler
+    namespace: kube-system
+    resourceVersion: "1267"
+    uid: 4bdc9b11-815f-467e-84c9-562440e538e6
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: "2025-08-05T20:46:11Z"
+    labels:
+      addonmanager.kubernetes.io/mode: EnsureExists
+      k8s-app: kube-dns
+      kubernetes.io/cluster-service: "true"
+    name: coredns-custom
+    namespace: kube-system
+    resourceVersion: "418"
+    uid: 28a5d319-a78d-4380-b232-75825484a616
+- apiVersion: v1
+  data:
+    client-ca-file: |
+      -----BEGIN CERTIFICATE-----
+      MIIE6TCCAtGgAwIBAgIRALLXsaUs5KSEqjjmrvOjFxgwDQYJKoZIhvcNAQELBQAw
+      DTELMAkGA1UEAxMCY2EwIBcNMjUwODA1MjAzNDQ5WhgPMjA1NTA4MDUyMDQ0NDla
+      MA0xCzAJBgNVBAMTAmNhMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA
+      ug0d7nZ5Zvr2Xi20t2D083+FntoSoltfvy33kBZLUIs33qrFQW/sg3keyrQzFNIa
+      Mj6YyYXefBSETR8zKJD9t6Nz9RM/NOmxJLi4cVfQtj9iDT0UiFZuEFcvcztZTMTa
+      iZMD7SACCdSEvb1DTdODBbpuLzW4R+rvjEE5OozXrabwuNv4pOJHTn0oLZyQ66tE
+      aRBAUwGfYn6TUjO9nQQqxLfCG/6PnGkkoUUZgaQsk4jPPblomErZvgBK3aFLp7GY
+      HnmtodpKTdZts236PA0TNV+R7IjQGyhIIPxeaumi4pSTWWUCteHHNC3ETB6tXRIf
+      /pxugNjtBHa7NAWAhlBcRFDcYmGzE4EIGnsIO/kciF6HLPrjYzkfE6+Sf5e8TUre
+      sXyyyQYeY8/KfAO9mo0ijgV+VEaoqzZAfN7Nt6Bh1YQF13I3UlySfsC2tfCM7L3f
+      3Qu/Vtjv2WXfzBMfnVPi1QJcCdvOgFAVSWREprYYxUaARnLvheFCt6kIzJW+TKS7
+      P5dr7N5VE/TRz98FXab5B1r+sHFJbrT/mxzbaXi06IAdAVgpMx7tQ88y5PIXIzPV
+      ou+LKQ7RY9z7g/Cw4KOZNdgdtkEuEg9H9vIsmXWotxg6RHWQQac/Si2ORgbsDD3f
+      IzuEEUPZ1k7TW4ddfZDOjT9cNyu9cjn9VZ7s0LVnDLMCAwEAAaNCMEAwDgYDVR0P
+      AQH/BAQDAgKkMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFKW0jGgrtoAMQVLt
+      gqMnWXrigQoFMA0GCSqGSIb3DQEBCwUAA4ICAQAP4ebLHQhyNblj+AhvNGHg3629
+      jIG2hg2EbYl0voKd/mCbVlmYujSgveJbUhDrwOpvbZuBf992h0QSGiqybRfNSX6X
+      YuTBYBq0vYLo99jWb9MCpgpEVXPblAxZdfn3/PV0BsP9Jsdhv3g9b8WttaXeOrV/
+      3ravxqCHGM6IuaZ1AdTcFkzFx9oLsPprIJqqeTf8Yo9IrBQdHKVWG8jJKvfaMpSj
+      6dPjRy2DF4jUxGnPhksu+E6r5cWCI4yGAN325B4XSCtzjMmMA6L7bMCjcCiF8vq/
+      +SAeeeXxLbGZ4sOuocLwW2c0F7U3PYcUVRxtKAMwklL0zEm73rgKMhl/3CY9oMFp
+      kqZPx+OqwQwOdCRaJoBoPlf6UOiEDS7+HPl6AH6+CurZAdCoZLzwd6vw/UjpXBOW
+      9bNSPoms/JMU27BaNf964T91VkekHc2eM3CVd5PUDn/bxrhTfu/QFOSBl42ZcVRA
+      68HjaLqwwrG37IWQwR+tDslzNDytHjiw1GQwIPwqyYzGQWLeGKQFHJ369a/U6HaT
+      +OPkC26/aRhZZDiGiOKAbZh0iHmi6POkXsRGgbN36f3NUkN3WSyjgXCVAYfCU+TZ
+      kachUs0DJ9YUlxj9rd/8g8gk7waWqHA05napw4V8pl2lY+LTwZQEJK7wtQGqOrOo
+      DCCmPbk2h2BfPAVCGA==
+      -----END CERTIFICATE-----
+    requestheader-allowed-names: '[]'
+    requestheader-client-ca-file: |
+      -----BEGIN CERTIFICATE-----
+      MIIE8TCCAtmgAwIBAgIRAJ3PTiOKhMJPlCciw2gRqDgwDQYJKoZIhvcNAQELBQAw
+      ETEPMA0GA1UEAxMGYWdnLWNhMCAXDTI1MDgwNTIwMzQ0OVoYDzIwNTUwODA1MjA0
+      NDQ5WjARMQ8wDQYDVQQDEwZhZ2ctY2EwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAw
+      ggIKAoICAQC6j9BebGgEd7mQAlJpcXDx2lPcqNYrFOsXOO6UXFFQgZixeAjmQlOL
+      yrUBx+J7KziYhVAq/xZ5bgbtW6TEZMVvcySU837PdLOHHkodRQ0Qm8kBSmM+yi8R
+      lM4yNI+057RdsSAfw5q3PBv0gS2nHlBssoQv2oKbtS32G5hSMHeyCEYg72lrtGWM
+      b/zobWDjLRwUbF9OOJkuuGdT5SXXulGaVoWGcEQ3cyNR2GX6ghCZOOZBuJnwbkzr
+      e3GFbIRwIUjKWfl/zY+zQJ4Ha4HgUXbUKfYubVp7WnIYSvHWiiOWovcmdwGf+paT
+      q1y0C0x7HbIr8r40CMNOvAQ5fqoaNIKjaqfNTM5OcVpTo1B8lCM+ng5dbOMU3xHc
+      wLz/TLaOANk3NAXO9EEKIVap14set9gho58kCNzjwpRkUsmL/tuTsHbqcqmnKAL2
+      d3RcZihDxQ7XL6CHLBvb+7t3uEjGN5w9g7D2I4ebrNW7Vo22MUp1KlWKlhIHVfIl
+      SKAyqS9jAr/PfvLIPV47E7ZMGhELZGFJBXIuuUQZb9JTQvEKEI/ZKlnrhhVySMGL
+      oqVpzYAFmrN4+pfpVtXiYmEdO6YRy9hE2KQr8uEfwwuKAkd+9pOwVl3JqBR9GE/S
+      fuvru4kjyYLj9bo98M45e4yyjrDhfmwrxNw7bU5eyK2jFxRpYyNwLwIDAQABo0Iw
+      QDAOBgNVHQ8BAf8EBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUNlP8
+      PdL7yA9hcbmLlt9TvNxFFDgwDQYJKoZIhvcNAQELBQADggIBAJO6ac2mtZPkZHfT
+      2XBh1/3GpOPZtSRpMkkZoTefdHqn4fRJfSY3bX9BqypDd4BpbKACcNJAQZLtRiO+
+      LtQ8b9H0Zb8nYmNdp1oNT3jOmc7LcZe7EhP8HC1HT8yJGyUwdWOCDHoJv7nUwUhB
+      MHhmlCxdLKit0efbsu6DYUTKFIczc9Y2pTHz84V3AsdSbXMCKphdP4le/oS3g453
+      RsB2JOUDIuq7BJvcggNZSbSdcrqf4P5z4osEevdkcZYjzUIhTc92nbimfYDpTAMc
+      RNhOSlzYzDBWDpXF1h9EKntubvhbVa8RVOWY4/glqaOeppf9dKHx0zH9+xEAhQSG
+      boa6PkbC+N2lJ+O3GNyM/NU1Q6Iwbr6N/K6dG2LI/WNGDw2OeUKA09mca6HGhMbM
+      9FKMTsN9oLoLWECrw76O9Wyn7fsLrX1efEv3f/SQrMVyRxjkUtTToV+8KxnTtt4G
+      jZcUUwyO4MSdVXbJfqtGCFHkDQhvChDfWx9lWlbXcr+UYQwjnH8721vxQ3Uq7ggU
+      /LEutsl25U/jUIRZspO4lIerS4sqY6LeJl2Tf0d2FvFVhNv+l6dkUwwTBLCRP+TF
+      rYd1p1ec3tVAFY973h2H0U9rgAb9BU9ojQ45BxNgqfCku3lr35uyYMFBhSsVsuoA
+      PlfKDzwTXM3GfxpwArNYsEItXDs8
+      -----END CERTIFICATE-----
+    requestheader-extra-headers-prefix: '["X-Remote-Extra-"]'
+    requestheader-group-headers: '["X-Remote-Group"]'
+    requestheader-username-headers: '["X-Remote-User"]'
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: "2025-08-05T20:45:41Z"
+    name: extension-apiserver-authentication
+    namespace: kube-system
+    resourceVersion: "25"
+    uid: 0186b5ea-4afd-4e50-bb08-f16e2bf888ef
+- apiVersion: v1
+  data:
+    ladder: |-
+      {
+        "coresToReplicas": [],
+        "nodesToReplicas":
+        [
+          [1, 2],
+          [100, 3],
+          [250, 4],
+          [500, 5],
+          [1000, 6],
+          [1500, 7],
+          [2000, 8],
+          [5000, 10]
+        ]
+      }
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: "2025-08-05T20:46:12Z"
+    labels:
+      addonmanager.kubernetes.io/mode: EnsureExists
+      app: konnectivity-agent-autoscaler
+      kubernetes.io/cluster-service: "true"
+    name: konnectivity-agent-autoscaler
+    namespace: kube-system
+    resourceVersion: "421"
+    uid: 03f35f2b-7b4d-4b15-b966-539a210cd83d
+- apiVersion: v1
+  data:
+    since: "2025-08-05"
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: "2025-08-05T20:45:41Z"
+    name: kube-apiserver-legacy-service-account-token-tracking
+    namespace: kube-system
+    resourceVersion: "13"
+    uid: bf327cec-5deb-424c-ade1-aa67f5c2a03a
+- apiVersion: v1
+  data:
+    ca.crt: |
+      -----BEGIN CERTIFICATE-----
+      MIIE6TCCAtGgAwIBAgIRALLXsaUs5KSEqjjmrvOjFxgwDQYJKoZIhvcNAQELBQAw
+      DTELMAkGA1UEAxMCY2EwIBcNMjUwODA1MjAzNDQ5WhgPMjA1NTA4MDUyMDQ0NDla
+      MA0xCzAJBgNVBAMTAmNhMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA
+      ug0d7nZ5Zvr2Xi20t2D083+FntoSoltfvy33kBZLUIs33qrFQW/sg3keyrQzFNIa
+      Mj6YyYXefBSETR8zKJD9t6Nz9RM/NOmxJLi4cVfQtj9iDT0UiFZuEFcvcztZTMTa
+      iZMD7SACCdSEvb1DTdODBbpuLzW4R+rvjEE5OozXrabwuNv4pOJHTn0oLZyQ66tE
+      aRBAUwGfYn6TUjO9nQQqxLfCG/6PnGkkoUUZgaQsk4jPPblomErZvgBK3aFLp7GY
+      HnmtodpKTdZts236PA0TNV+R7IjQGyhIIPxeaumi4pSTWWUCteHHNC3ETB6tXRIf
+      /pxugNjtBHa7NAWAhlBcRFDcYmGzE4EIGnsIO/kciF6HLPrjYzkfE6+Sf5e8TUre
+      sXyyyQYeY8/KfAO9mo0ijgV+VEaoqzZAfN7Nt6Bh1YQF13I3UlySfsC2tfCM7L3f
+      3Qu/Vtjv2WXfzBMfnVPi1QJcCdvOgFAVSWREprYYxUaARnLvheFCt6kIzJW+TKS7
+      P5dr7N5VE/TRz98FXab5B1r+sHFJbrT/mxzbaXi06IAdAVgpMx7tQ88y5PIXIzPV
+      ou+LKQ7RY9z7g/Cw4KOZNdgdtkEuEg9H9vIsmXWotxg6RHWQQac/Si2ORgbsDD3f
+      IzuEEUPZ1k7TW4ddfZDOjT9cNyu9cjn9VZ7s0LVnDLMCAwEAAaNCMEAwDgYDVR0P
+      AQH/BAQDAgKkMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFKW0jGgrtoAMQVLt
+      gqMnWXrigQoFMA0GCSqGSIb3DQEBCwUAA4ICAQAP4ebLHQhyNblj+AhvNGHg3629
+      jIG2hg2EbYl0voKd/mCbVlmYujSgveJbUhDrwOpvbZuBf992h0QSGiqybRfNSX6X
+      YuTBYBq0vYLo99jWb9MCpgpEVXPblAxZdfn3/PV0BsP9Jsdhv3g9b8WttaXeOrV/
+      3ravxqCHGM6IuaZ1AdTcFkzFx9oLsPprIJqqeTf8Yo9IrBQdHKVWG8jJKvfaMpSj
+      6dPjRy2DF4jUxGnPhksu+E6r5cWCI4yGAN325B4XSCtzjMmMA6L7bMCjcCiF8vq/
+      +SAeeeXxLbGZ4sOuocLwW2c0F7U3PYcUVRxtKAMwklL0zEm73rgKMhl/3CY9oMFp
+      kqZPx+OqwQwOdCRaJoBoPlf6UOiEDS7+HPl6AH6+CurZAdCoZLzwd6vw/UjpXBOW
+      9bNSPoms/JMU27BaNf964T91VkekHc2eM3CVd5PUDn/bxrhTfu/QFOSBl42ZcVRA
+      68HjaLqwwrG37IWQwR+tDslzNDytHjiw1GQwIPwqyYzGQWLeGKQFHJ369a/U6HaT
+      +OPkC26/aRhZZDiGiOKAbZh0iHmi6POkXsRGgbN36f3NUkN3WSyjgXCVAYfCU+TZ
+      kachUs0DJ9YUlxj9rd/8g8gk7waWqHA05napw4V8pl2lY+LTwZQEJK7wtQGqOrOo
+      DCCmPbk2h2BfPAVCGA==
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubernetes.io/description: Contains a CA bundle that can be used to verify the
+        kube-apiserver when using internal endpoints such as the internal service
+        IP or kubernetes.default.svc. No other usage is guaranteed across distributions
+        of Kubernetes clusters.
+    creationTimestamp: "2025-08-05T20:46:03Z"
+    name: kube-root-ca.crt
+    namespace: kube-system
+    resourceVersion: "369"
+    uid: b73dfb65-07f3-4e9d-a3ef-29fe9cbbc3ed
+- apiVersion: v1
+  data:
+    ccpEtag: b7f08cfd-fb27-4377-b916-13d3ffe49ae1
+    isSLA: "false"
+    lastUpgradeTime: 2025-08-12 09:41:49.66189156 +0000 UTC
+    overlaymgrversionGoal: 'Version: unset - Branch: unset - git SHA: unset - Build
+      date / time: unset'
+  kind: ConfigMap
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: aks-managed-overlay-upgrade-data
+      meta.helm.sh/release-namespace: kube-system
+    creationTimestamp: "2025-08-05T20:45:57Z"
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: overlay-upgrade-data-adapter-helmrelease
+      helm.toolkit.fluxcd.io/namespace: 68926d1eb0c7a100013b4821
+      k8s-app: overlay-upgrade
+    name: overlay-upgrade-data
+    namespace: kube-system
+    resourceVersion: "2697387"
+    uid: 3708592a-0548-42d9-bf8a-af09ebaf7a60
+kind: List
+metadata:
+  resourceVersion: ""

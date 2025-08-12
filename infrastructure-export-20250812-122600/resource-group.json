@@ -1,0 +1,14 @@
+{
+  "id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG",
+  "location": "eastus2",
+  "managedBy": null,
+  "name": "eShopCleverRG",
+  "properties": {
+    "provisioningState": "Succeeded"
+  },
+  "tags": {
+    "environment": "demo",
+    "project": "eshop"
+  },
+  "type": "Microsoft.Resources/resourceGroups"
+}

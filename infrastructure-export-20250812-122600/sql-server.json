@@ -1,0 +1,29 @@
+{
+  "administratorLogin": "eshopsreadmin",
+  "administratorLoginPassword": null,
+  "administrators": null,
+  "externalGovernanceStatus": "Disabled",
+  "federatedClientId": null,
+  "fullyQualifiedDomainName": "eshopclever-sqlsrv.database.windows.net",
+  "id": "/subscriptions/5f62fee3-b00a-44d2-86e5-5cf130b28b5d/resourceGroups/eShopCleverRG/providers/Microsoft.Sql/servers/eshopclever-sqlsrv",
+  "identity": null,
+  "isIPv6Enabled": null,
+  "keyId": null,
+  "kind": "v12.0",
+  "location": "eastus2",
+  "minimalTlsVersion": "1.2",
+  "name": "eshopclever-sqlsrv",
+  "primaryUserAssignedIdentityId": null,
+  "privateEndpointConnections": [],
+  "publicNetworkAccess": "Enabled",
+  "resourceGroup": "eShopCleverRG",
+  "restrictOutboundNetworkAccess": "Disabled",
+  "state": "Ready",
+  "tags": {
+    "environment": "demo",
+    "project": "eshop"
+  },
+  "type": "Microsoft.Sql/servers",
+  "version": "12.0",
+  "workspaceFeature": null
+}
