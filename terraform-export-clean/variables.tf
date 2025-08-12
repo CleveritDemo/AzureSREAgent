@@ -2,13 +2,13 @@
 variable "subscription_id" {
   description = "Azure subscription ID where resources will be created"
   type        = string
-  default     = "5f62fee3-b00a-44d2-86e5-5cf130b28b5d"  # Your current subscription
+  default     = "5f62fee3-b00a-44d2-86e5-5cf130b28b5d"  # Current subscription - will be overridden for migration
 }
 
 variable "tenant_id" {
   description = "Azure tenant ID where the subscription belongs"
   type        = string
-  default     = "c9f150c3-1e99-4e8d-95fd-9a05ca65db01"  # Your current tenant
+  default     = "1033d128-85ad-47b4-8c85-0a28b6ce0297"  # Current tenant - will be overridden for migration
 }
 
 variable "resource_group_name" {

@@ -19,7 +19,45 @@ cd AzureSREAgent
 # That's it! You're ready to go! 🎉
 ```
 
-## 🔄 Daily Workflow for Resource Changes
+## � Cross-Tenant/Cross-Subscription Migration
+
+### **Complete Infrastructure Migration:**
+
+```powershell
+# Step 1: Validate prerequisites
+.\validate-migration-prerequisites.ps1 -TargetTenantId "NEW_TENANT_ID" -TargetSubscriptionId "NEW_SUBSCRIPTION_ID"
+
+# Step 2: Run migration (plan first)
+.\migrate-to-new-tenant.ps1 `
+    -TargetTenantId "NEW_TENANT_ID" `
+    -TargetSubscriptionId "NEW_SUBSCRIPTION_ID" `
+    -TargetResourceGroupName "eShopCleverRG" `
+    -CreateStateBackend `
+    -PlanOnly
+
+# Step 3: Execute migration
+.\migrate-to-new-tenant.ps1 `
+    -TargetTenantId "NEW_TENANT_ID" `
+    -TargetSubscriptionId "NEW_SUBSCRIPTION_ID" `
+    -TargetResourceGroupName "eShopCleverRG" `
+    -CreateStateBackend
+
+# Step 4: Configure post-migration services
+.\configure-post-migration.ps1 `
+    -NewTenantId "NEW_TENANT_ID" `
+    -NewSubscriptionId "NEW_SUBSCRIPTION_ID" `
+    -CreateServicePrincipal `
+    -GitHubRepo "CleveritDemo/AzureSREAgent"
+```
+
+### **Migration Features:**
+- ✅ **Preserves all resource names and configurations**
+- ✅ **Automated backup and rollback capabilities**
+- ✅ **GitHub Actions integration with OIDC authentication**
+- ✅ **Chaos experiment compatibility in new environment**
+- ✅ **Comprehensive validation and verification**
+
+## �🔄 Daily Workflow for Resource Changes
 
 ### **Making a Change:**
 
