@@ -16,6 +16,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+  	<PackageReference Include="Microsoft.NET.ILLink.Tasks" />
 		<Compile Update="Services\CatalogItem\Delete.EditCatalogItemResult.cs">
 			<DependentUpon>Delete.cs</DependentUpon>
 		</Compile>
