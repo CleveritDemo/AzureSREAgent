@@ -15,9 +15,11 @@ spec:
       labels:
         app: eshop-webmvc
     spec:
+      imagePullSecrets:
+      - name: acr-secret
       containers:
       - name: webmvc
-        image: eshopcleveracr.azurecr.io/eshopwebmvc:latest
+        image: eshopcleveracrgogx.azurecr.io/eshopwebmvc:latest
         ports:
         - containerPort: 8080
         env:

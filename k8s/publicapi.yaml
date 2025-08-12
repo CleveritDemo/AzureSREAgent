@@ -15,9 +15,11 @@ spec:
       labels:
         app: eshop-publicapi
     spec:
+      imagePullSecrets:
+      - name: acr-secret
       containers:
       - name: publicapi
-        image: eshopcleveracr.azurecr.io/eshoppublicapi:latest
+        image: eshopcleveracrgogx.azurecr.io/eshoppublicapi:latest
         ports:
         - containerPort: 8080
         env:

@@ -7,7 +7,7 @@ Write-Host ""
 
 # Ensure we're logged into ACR
 Write-Host "📋 Checking Azure Container Registry login..." -ForegroundColor Yellow
-az acr login --name eshopcleveracr
+az acr login --name eshopcleveracrgogx
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to login to ACR. Please check your Azure CLI authentication." -ForegroundColor Red
     exit 1
@@ -19,7 +19,7 @@ Write-Host ""
 # Build Web MVC Application
 Write-Host "🔨 Building Web MVC Docker image..." -ForegroundColor Yellow
 $webBuildStart = Get-Date
-docker build --pull -t eshopcleveracr.azurecr.io/eshopwebmvc:latest -f src/Web/Dockerfile .
+docker build --pull -t eshopcleveracrgogx.azurecr.io/eshopwebmvc:latest -f src/Web/Dockerfile .
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to build Web MVC image" -ForegroundColor Red
     exit 1
@@ -31,7 +31,7 @@ Write-Host ""
 # Build Public API Application
 Write-Host "🔨 Building Public API Docker image..." -ForegroundColor Yellow
 $apiBuildStart = Get-Date
-docker build --pull -t eshopcleveracr.azurecr.io/eshoppublicapi:latest -f src/PublicApi/Dockerfile .
+docker build --pull -t eshopcleveracrgogx.azurecr.io/eshoppublicapi:latest -f src/PublicApi/Dockerfile .
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to build Public API image" -ForegroundColor Red
     exit 1
@@ -43,7 +43,7 @@ Write-Host ""
 # Push Web MVC Image
 Write-Host "📤 Pushing Web MVC image to ACR..." -ForegroundColor Yellow
 $webPushStart = Get-Date
-docker push eshopcleveracr.azurecr.io/eshopwebmvc:latest
+docker push eshopcleveracrgogx.azurecr.io/eshopwebmvc:latest
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to push Web MVC image" -ForegroundColor Red
     exit 1
@@ -55,7 +55,7 @@ Write-Host ""
 # Push Public API Image
 Write-Host "📤 Pushing Public API image to ACR..." -ForegroundColor Yellow
 $apiPushStart = Get-Date
-docker push eshopcleveracr.azurecr.io/eshoppublicapi:latest
+docker push eshopcleveracrgogx.azurecr.io/eshoppublicapi:latest
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to push Public API image" -ForegroundColor Red
     exit 1
@@ -74,8 +74,8 @@ Write-Host "  • Web MVC Push Time: $($webPushTime.TotalSeconds.ToString('F1'))
 Write-Host "  • Public API Push Time: $($apiPushTime.TotalSeconds.ToString('F1'))s" -ForegroundColor White
 Write-Host ""
 Write-Host "🔗 Your images are now available at:" -ForegroundColor White
-Write-Host "  • eshopcleveracr.azurecr.io/eshopwebmvc:latest" -ForegroundColor Cyan
-Write-Host "  • eshopcleveracr.azurecr.io/eshoppublicapi:latest" -ForegroundColor Cyan
+Write-Host "  • eshopcleveracrgogx.azurecr.io/eshopwebmvc:latest" -ForegroundColor Cyan
+Write-Host "  • eshopcleveracrgogx.azurecr.io/eshoppublicapi:latest" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "📋 Next Steps:" -ForegroundColor Yellow
 Write-Host "  1. Deploy to your AKS cluster (eshopcleveraks)" -ForegroundColor White
