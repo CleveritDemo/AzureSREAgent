@@ -49,6 +49,10 @@ env:
   AZURE_SUBSCRIPTION_ID: 5f62fee3-b00a-44d2-86e5-5cf130b28b5d
   TERRAFORM_WORKING_DIR: ./terraform-export-clean
   TF_VAR_subscription_id: 5f62fee3-b00a-44d2-86e5-5cf130b28b5d
+  # Terraform Azure Provider Authentication
+  ARM_USE_OIDC: true
+  ARM_USE_AZUREAD: true
+  ARM_USE_CLI: false
 
 jobs:
   validate-inputs:
@@ -198,18 +202,19 @@ jobs:
       with:
         terraform_version: "~1.0"
 
-    - name: Check Terraform State Lock
+    - name: Set Terraform Environment Variables
+      run: |
+        echo "ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
+        echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
+        echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+        echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
+        echo "ARM_USE_CLI=false" >> $GITHUB_ENV
+
+    - name: Terraform Init
       working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
       run: |
-        echo "Checking for any existing state locks..."
-        terraform init -backend=true
-        
-        # Check if state is locked
-        if ! terraform refresh -lock-timeout=30s; then
-          echo "Warning: Terraform state might be locked. Attempting to force unlock..."
-          # Note: In production, you might want to handle this more carefully
-          terraform force-unlock -force $(terraform show -json 2>/dev/null | jq -r '.values.root_module.resources[] | select(.type=="terraform_remote_state") | .values.workspace' || echo "")
-        fi
+        echo "Initializing Terraform with Azure backend..."
+        terraform init -backend=true -upgrade
 
     - name: Generate Terraform Configuration for New Experiment
       working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
@@ -292,9 +297,7 @@ jobs:
         # Create plan with detailed output
         terraform plan \
           -out=tfplan-${{ inputs.experiment_name }} \
-          -detailed-exitcode \
-          -var="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
-          -var="subscription_id=${{ env.AZURE_SUBSCRIPTION_ID }}"
+          -detailed-exitcode
         
         # Save plan output for review
         terraform show -no-color tfplan-${{ inputs.experiment_name }} > tfplan-${{ inputs.experiment_name }}.txt
