@@ -113,14 +113,20 @@ jobs:
         echo "📁 Checking available configuration files..."
         echo "Current directory: $(pwd)"
         echo ""
-        echo "Available .tfvars files:"
-        find . -name "*.tfvars" -type f || echo "No .tfvars files found"
-        echo ""
-        echo "Available .conf files:"
-        find . -name "*.conf" -type f || echo "No .conf files found"
-        echo ""
-        echo "All files in current directory:"
+        echo "All files in terraform-export-clean:"
         ls -la
+        echo ""
+        echo "Terraform files (.tf):"
+        find . -name "*.tf" -type f | head -20
+        echo ""
+        echo "Backend config files:"
+        find . -name "*.conf" -type f
+        echo ""
+        echo "Variables files:"
+        find . -name "*.tfvars" -type f
+        echo ""
+        echo "Main terraform files check:"
+        ls -la main.tf resources.tf variables.tf 2>/dev/null || echo "❌ Main terraform files not found in current directory"
 
     - name: Terraform Format Check
       id: fmt
@@ -196,20 +202,28 @@ jobs:
       run: |
         echo "📋 Creating Terraform execution plan..."
         
-        # Use dev.tfvars directly (matching your local script pattern)
-        if [ -f "dev.tfvars" ]; then
-          echo "Using dev.tfvars (development environment)"
-          terraform plan -var-file="dev.tfvars" -no-color
-        else
-          echo "❌ dev.tfvars not found - creating basic dev.tfvars"
+        # Create dev.tfvars if it doesn't exist (matching your local script pattern)
+        if [ ! -f "dev.tfvars" ]; then
+          echo "❌ dev.tfvars not found - creating for development environment"
           cat > dev.tfvars <<EOF
         # Development environment configuration
         environment = "development"
         subscription_id = "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
         tenant_id = "${{ secrets.AZURE_TENANT_ID }}"
+        project_name = "eshopdev"
+        resource_group_name = "eShopCleverRG"
+        resource_group_location = "East US"
+        sql_admin_password = "_Matilde11"
         EOF
-          terraform plan -var-file="dev.tfvars" -no-color
+          echo "✅ Created dev.tfvars for development"
         fi
+        
+        echo "📄 Using dev.tfvars content:"
+        cat dev.tfvars
+        echo ""
+        
+        echo "🔄 Running terraform plan..."
+        terraform plan -var-file="dev.tfvars" -out="terraform.tfplan" -no-color
       continue-on-error: false
 
     - name: 'Update Pull Request'
@@ -271,13 +285,13 @@ jobs:
       run: |
         echo "🚀 Applying Terraform changes..."
         
-        # Use dev.tfvars (matching your local script pattern)
-        if [ -f "dev.tfvars" ]; then
-          echo "Using dev.tfvars (development environment)"
-          terraform apply -var-file="dev.tfvars" -auto-approve
+        # Use the terraform plan file (matching your local script pattern)
+        if [ -f "terraform.tfplan" ]; then
+          echo "✅ Using saved terraform plan"
+          terraform apply "terraform.tfplan"
         else
-          echo "❌ dev.tfvars not found - this shouldn't happen after plan step"
-          exit 1
+          echo "❌ terraform.tfplan not found - running direct apply"
+          terraform apply -var-file="dev.tfvars" -auto-approve
         fi
 
     - name: Terraform Destroy
