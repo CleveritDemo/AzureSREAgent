@@ -17,7 +17,6 @@ on:
         required: false
         type: string
 
-# Permisos necesarios para OIDC
 permissions:
   id-token: write
   contents: read
@@ -46,18 +45,43 @@ jobs:
       with:
         terraform_version: ${{ env.TF_VERSION }}
 
-    - name: 'Verify Azure Secrets'
+    - name: 'Debug Azure Secrets'
       run: |
-        echo "🔍 Checking available Azure secrets..."
-        echo "AZURE_CLIENT_ID: $([[ -n '${{ secrets.AZURE_CLIENT_ID }}' ]] && echo 'SET' || echo 'EMPTY')"
-        echo "AZURE_TENANT_ID: $([[ -n '${{ secrets.AZURE_TENANT_ID }}' ]] && echo 'SET' || echo 'EMPTY')"
-        echo "AZURE_SUBSCRIPTION_ID: $([[ -n '${{ secrets.AZURE_SUBSCRIPTION_ID }}' ]] && echo 'SET' || echo 'EMPTY')"
-        echo "AZURE_CREDENTIALS: $([[ -n '${{ secrets.AZURE_CREDENTIALS }}' ]] && echo 'SET' || echo 'EMPTY')"
+        echo "🔍 Debugging Azure secrets..."
+        
+        # Verificar que los secrets existen
+        if [ -z "${{ secrets.AZURE_CREDENTIALS }}" ]; then
+          echo "❌ AZURE_CREDENTIALS is EMPTY or not set"
+        else
+          echo "✅ AZURE_CREDENTIALS is set (length: $(echo '${{ secrets.AZURE_CREDENTIALS }}' | wc -c))"
+          echo "First 20 chars: $(echo '${{ secrets.AZURE_CREDENTIALS }}' | cut -c1-20)..."
+        fi
+        
+        if [ -z "${{ secrets.AZURE_CLIENT_ID }}" ]; then
+          echo "❌ AZURE_CLIENT_ID is EMPTY"
+        else
+          echo "✅ AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}"
+        fi
+        
+        if [ -z "${{ secrets.AZURE_TENANT_ID }}" ]; then
+          echo "❌ AZURE_TENANT_ID is EMPTY"  
+        else
+          echo "✅ AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}"
+        fi
+        
+        if [ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+          echo "❌ AZURE_SUBSCRIPTION_ID is EMPTY"
+        else
+          echo "✅ AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        fi
 
-    - name: 'Az CLI login'
+    - name: 'Try Azure Login with Individual Secrets'
       uses: azure/login@v2
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        enable-AzPSSession: false
 
     - name: Verify Authentication Method
       run: |
@@ -101,7 +125,7 @@ jobs:
 
     - name: Update Pull Request
       uses: actions/github-script@v7
-      if: false  # Disabled since we only use manual triggers
+      if: false  
       env:
         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
       with:
