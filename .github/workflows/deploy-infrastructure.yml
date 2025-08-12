@@ -46,30 +46,30 @@ jobs:
       with:
         terraform_version: ${{ env.TF_VERSION }}
 
+    - name: 'Verify Azure Secrets'
+      run: |
+        echo "🔍 Checking available Azure secrets..."
+        echo "AZURE_CLIENT_ID: $([[ -n '${{ secrets.AZURE_CLIENT_ID }}' ]] && echo 'SET' || echo 'EMPTY')"
+        echo "AZURE_TENANT_ID: $([[ -n '${{ secrets.AZURE_TENANT_ID }}' ]] && echo 'SET' || echo 'EMPTY')"
+        echo "AZURE_SUBSCRIPTION_ID: $([[ -n '${{ secrets.AZURE_SUBSCRIPTION_ID }}' ]] && echo 'SET' || echo 'EMPTY')"
+        echo "AZURE_CREDENTIALS: $([[ -n '${{ secrets.AZURE_CREDENTIALS }}' ]] && echo 'SET' || echo 'EMPTY')"
+
     - name: 'Az CLI login'
       uses: azure/login@v2
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Verify Authentication Method
       run: |
         echo "🔍 Verifying authentication setup..."
-        echo "ARM_USE_OIDC: $ARM_USE_OIDC"
-        echo "ARM_USE_CLI: $ARM_USE_CLI"
-        echo "AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}"
-        echo "AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}"
-        echo "AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        echo "Using AZURE_CREDENTIALS for authentication"
         
         # Verificar que podemos acceder a Azure
         az account show --output table
       env:
-        ARM_USE_OIDC: true
-        ARM_USE_CLI: false
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        # No necesitamos estas variables para el método de credentials
+        ARM_USE_OIDC: false
+        ARM_USE_CLI: true
 
     - name: Terraform Format Check
       id: fmt
@@ -82,11 +82,7 @@ jobs:
         echo "🚀 Initializing Terraform..."
         terraform init
       env:
-        ARM_USE_OIDC: true
-        ARM_USE_CLI: false
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_USE_CLI: true
 
     - name: Terraform Validate
       id: validate
@@ -100,16 +96,12 @@ jobs:
         echo "📋 Creating Terraform execution plan..."
         terraform plan -var-file="development.tfvars" -no-color
       env:
-        ARM_USE_OIDC: true
-        ARM_USE_CLI: false
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_USE_CLI: true
       continue-on-error: false
 
     - name: Update Pull Request
       uses: actions/github-script@v7
-      if: false  
+      if: false  # Disabled since we only use manual triggers
       env:
         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
       with:
@@ -167,11 +159,7 @@ jobs:
         echo "🚀 Applying Terraform changes..."
         terraform apply -var-file="development.tfvars" -auto-approve
       env:
-        ARM_USE_OIDC: true
-        ARM_USE_CLI: false
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_USE_CLI: true
 
     - name: Terraform Destroy
       if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_action == 'yes'
@@ -179,11 +167,7 @@ jobs:
         echo "🗑️ Destroying Terraform managed infrastructure..."
         terraform destroy -var-file="development.tfvars" -auto-approve
       env:
-        ARM_USE_OIDC: true
-        ARM_USE_CLI: false
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_USE_CLI: true
 
     - name: Verify Infrastructure State
       if: github.event.inputs.action == 'apply'
