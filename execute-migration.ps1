@@ -32,7 +32,7 @@ function Show-Step {
         default { "⏳" }
     }
     
-    Write-Host "$icon Step $StepNumber: $Description" -ForegroundColor $(
+    Write-Host "$icon Step ${StepNumber}: $Description" -ForegroundColor $(
         switch ($Status) {
             "complete" { "Green" }
             "error" { "Red" }
