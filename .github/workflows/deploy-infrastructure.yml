@@ -92,13 +92,22 @@ jobs:
         AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         CLIENTSECRET: ${{ secrets.CLIENTSECRET }}
 
-    - name: 'Azure Login with Your Secrets'
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        client-secret: ${{ secrets.CLIENTSECRET }}
+    - name: 'Azure Login with Service Principal'
+      run: |
+        echo "🔐 Logging in to Azure with Service Principal..."
+        
+        # Login usando Service Principal con client-secret
+        az login --service-principal \
+          --username "${{ secrets.AZURE_CLIENT_ID }}" \
+          --password "${{ secrets.CLIENTSECRET }}" \
+          --tenant "${{ secrets.AZURE_TENANT_ID }}"
+        
+        # Establecer la suscripción
+        az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        
+        # Verificar login exitoso
+        echo "✅ Login successful!"
+        az account show --output table
 
     - name: Verify Authentication Method
       run: |
