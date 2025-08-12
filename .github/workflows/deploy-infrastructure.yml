@@ -13,10 +13,36 @@ on:
       - 'terraform-export-clean/**'
       - 'src/**'
   workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+        - plan
+        - apply
+        - destroy
+      confirm_action:
+        description: 'Confirm action (type "yes" to proceed with apply/destroy)'
+        required: false
+        type: string
+
+# Permisos necesarios para OIDC
+permissions:
+  id-token: write
+  contents: read
 
 env:
-  AZURE_SUBSCRIPTION_ID: 5f62fee3-b00a-44d2-86e5-5cf130b28b5d
-  TERRAFORM_WORKING_DIR: ./terraform-export-clean
+  TF_VERSION: '1.5.7'
+  WORKING_DIRECTORY: 'terraform-export-clean'
+  ENVIRONMENT: 'development'
+  # Azure authentication for Terraform (OIDC)
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_USE_OIDC: true
+  ARM_USE_CLI: false
 
 jobs:
   deploy:
@@ -42,7 +68,90 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_version: "~1.0"
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: 'Debug Azure Secrets'
+      run: |
+        echo "🔍 Debugging Azure secrets for OIDC..."
+        echo "=================================="
+        
+        echo "AZURE_CLIENT_ID:"
+        if [ -z "$AZURE_CLIENT_ID" ]; then
+          echo "  ❌ EMPTY or not set"
+        else
+          echo "  ✅ SET - Length: ${#AZURE_CLIENT_ID} chars"
+          echo "  ✅ Value: $AZURE_CLIENT_ID"
+        fi
+        
+        echo ""
+        echo "AZURE_TENANT_ID:"
+        if [ -z "$AZURE_TENANT_ID" ]; then
+          echo "  ❌ EMPTY or not set"
+        else
+          echo "  ✅ SET - Length: ${#AZURE_TENANT_ID} chars"  
+          echo "  ✅ Value: $AZURE_TENANT_ID"
+        fi
+        
+        echo ""
+        echo "AZURE_SUBSCRIPTION_ID:"
+        if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
+          echo "  ❌ EMPTY or not set"
+        else
+          echo "  ✅ SET - Length: ${#AZURE_SUBSCRIPTION_ID} chars"
+          echo "  ✅ Value: $AZURE_SUBSCRIPTION_ID"
+        fi
+        
+        echo ""
+        echo "🔐 OIDC Authentication Method:"
+        echo "  ✅ Using OIDC (no client secret needed)"
+        echo "  ✅ ARM_USE_OIDC: true"
+        echo "  ✅ ARM_USE_CLI: false"
+      env:
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: 'Azure Login with OIDC'
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Verify Authentication Method
+      run: |
+        echo "🔍 Verifying authentication setup..."
+        echo "✅ Azure login completed successfully"
+        
+        # Verificar que podemos acceder a Azure
+        az account show --output table
+
+    - name: 'Check Available Configuration Files'
+      run: |
+        echo "📁 Checking available configuration files..."
+        echo "Current directory: $(pwd)"
+        echo ""
+        echo "Available .tfvars files:"
+        find . -name "*.tfvars" -type f || echo "No .tfvars files found"
+        echo ""
+        echo "Available .conf files:"
+        find . -name "*.conf" -type f || echo "No .conf files found"
+        echo ""
+        echo "All files in current directory:"
+        ls -la
+
+    - name: Terraform Format Check
+      id: fmt
+      run: |
+        echo "🖌️ Checking Terraform format..."
+        if terraform fmt -check -recursive; then
+          echo "✅ All files are properly formatted"
+        else
+          echo "⚠️ Some files need formatting, auto-fixing..."
+          terraform fmt -recursive
+          echo "✅ Files formatted successfully"
+        fi
+      continue-on-error: false
 
     - name: Terraform Init
       working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
