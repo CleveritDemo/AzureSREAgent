@@ -1,0 +1,67 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: eshop-network-partition
+  namespace: chaos-testing
+spec:
+  # Use partition instead of delay for better AKS compatibility
+  action: partition
+  mode: one
+  duration: "60s"
+  selector:
+    namespaces:
+      - eshop
+    labelSelectors:
+      "app": "eshop-webmvc"
+  direction: to
+  target:
+    mode: one
+    selector:
+      namespaces:
+        - eshop
+      labelSelectors:
+        "app": "eshop-publicapi"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: eshop-external-network-delay
+  namespace: chaos-testing
+spec:
+  # Target external connections instead of pod-to-pod
+  action: delay
+  mode: one
+  duration: "60s"
+  selector:
+    namespaces:
+      - eshop
+    labelSelectors:
+      "app": "eshop-webmvc"
+  delay:
+    latency: "100ms"
+    correlation: "100"
+    jitter: "0ms"
+  # Use external targets that don't require iptables manipulation
+  externalTargets:
+    - "httpbin.org"
+    - "jsonplaceholder.typicode.com"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: eshop-bandwidth-limit
+  namespace: chaos-testing
+spec:
+  # Bandwidth limitation is often more compatible than delay
+  action: bandwidth
+  mode: one
+  duration: "60s"
+  selector:
+    namespaces:
+      - eshop
+    labelSelectors:
+      "app": "eshop-webmvc"
+  bandwidth:
+    rate: "1mbps"
+    limit: 20971520
+    buffer: 10000
