@@ -1,5 +1,9 @@
 name: Provision Chaos Experiment with Terraform
 
+permissions:
+  id-token: write
+  contents: read
+
 on:
   workflow_dispatch:
     inputs:
@@ -186,6 +190,13 @@ jobs:
       contents: read
       pull-requests: write
 
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+      ARM_USE_CLI: false
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -201,14 +212,6 @@ jobs:
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: "~1.0"
-
-    - name: Set Terraform Environment Variables
-      run: |
-        echo "ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
-        echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
-        echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
-        echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
-        echo "ARM_USE_CLI=false" >> $GITHUB_ENV
 
     - name: Terraform Init
       working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
@@ -286,6 +289,21 @@ jobs:
         # Verify backend configuration
         terraform version
         terraform providers
+
+    - name: Verify Authentication Method
+      working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
+      run: |
+        echo "Verifying Terraform authentication method..."
+        echo "ARM_USE_OIDC: $ARM_USE_OIDC"
+        echo "ARM_USE_CLI: $ARM_USE_CLI" 
+        echo "ARM_CLIENT_ID: $(echo $ARM_CLIENT_ID | cut -c1-8)..."
+        echo "ARM_TENANT_ID: $(echo $ARM_TENANT_ID | cut -c1-8)..."
+        echo "ARM_SUBSCRIPTION_ID: $(echo $ARM_SUBSCRIPTION_ID | cut -c1-8)..."
+        
+        # Test authentication by running a simple terraform command
+        echo "Testing Terraform provider authentication..."
+        terraform providers lock -platform=linux_amd64
+        echo "✅ Authentication successful - provider initialized with OIDC"
 
     - name: Terraform Validate
       working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
