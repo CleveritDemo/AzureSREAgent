@@ -17,6 +17,7 @@ on:
         required: false
         type: string
 
+# Permisos necesarios para OIDC
 permissions:
   id-token: write
   contents: read
@@ -78,65 +79,26 @@ jobs:
         fi
         
         echo ""
-        echo "AZURE_CREDENTIALS:"
-        if [ -z "$AZURE_CREDENTIALS" ]; then
+        echo "CLIENTSECRET:"
+        if [ -z "$CLIENTSECRET" ]; then
           echo "  ❌ EMPTY or not set"
         else
-          echo "  ✅ SET - Length: ${#AZURE_CREDENTIALS} chars"
-          echo "  ✅ First 50 chars: ${AZURE_CREDENTIALS:0:50}..."
-          # Intentar validar si es JSON válido
-          if echo "$AZURE_CREDENTIALS" | jq . > /dev/null 2>&1; then
-            echo "  ✅ Valid JSON format"
-            echo "  ✅ clientId: $(echo "$AZURE_CREDENTIALS" | jq -r '.clientId // "missing"')"
-            echo "  ✅ tenantId: $(echo "$AZURE_CREDENTIALS" | jq -r '.tenantId // "missing"')"
-          else
-            echo "  ❌ Invalid JSON format"
-          fi
+          echo "  ✅ SET - Length: ${#CLIENTSECRET} chars"
+          echo "  ✅ First 10 chars: ${CLIENTSECRET:0:10}..."
         fi
       env:
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+        CLIENTSECRET: ${{ secrets.CLIENTSECRET }}
 
-    - name: 'Try Azure Login - Method 1: AZURE_CREDENTIALS'
-      id: login_credentials
-      continue-on-error: true
-      uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-        
-    - name: 'Try Azure Login - Method 2: Individual Secrets'
-      id: login_individual
-      if: steps.login_credentials.outcome == 'failure'
-      continue-on-error: true
+    - name: 'Azure Login with Your Secrets'
       uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        
-    - name: 'Check Authentication Results'
-      run: |
-        echo "🔍 Authentication Results:"
-        echo "Method 1 (AZURE_CREDENTIALS): ${{ steps.login_credentials.outcome }}"
-        echo "Method 2 (Individual Secrets): ${{ steps.login_individual.outcome }}"
-        
-        if [ "${{ steps.login_credentials.outcome }}" = "success" ]; then
-          echo "✅ Successfully authenticated with AZURE_CREDENTIALS"
-        elif [ "${{ steps.login_individual.outcome }}" = "success" ]; then
-          echo "✅ Successfully authenticated with Individual Secrets"
-        else
-          echo "❌ Both authentication methods failed"
-          echo ""
-          echo "📋 Please check your GitHub Secrets configuration:"
-          echo "Settings > Secrets and variables > Actions"
-          echo ""
-          echo "You need EITHER:"
-          echo "1. AZURE_CREDENTIALS (JSON format)"
-          echo "2. OR all three: AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID"
-          exit 1
-        fi
+        client-secret: ${{ secrets.CLIENTSECRET }}
 
     - name: Verify Authentication Method
       run: |
