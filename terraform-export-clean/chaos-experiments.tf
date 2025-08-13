@@ -207,3 +207,60 @@ resource "azurerm_chaos_studio_experiment" "memory_stress" {
     }
   }
 }
+
+# Role assignments for Chaos Studio experiments to access AKS cluster
+resource "azurerm_role_assignment" "chaos_pod_failure_aks" {
+  scope                = data.azurerm_kubernetes_cluster.aks.id
+  role_definition_name = "Azure Kubernetes Service Cluster User Role"
+  principal_id         = azurerm_chaos_studio_experiment.pod_failure.identity[0].principal_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "chaos_pod_failure_contributor" {
+  scope                = data.azurerm_kubernetes_cluster.aks.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_chaos_studio_experiment.pod_failure.identity[0].principal_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "chaos_cpu_stress_aks" {
+  scope                = data.azurerm_kubernetes_cluster.aks.id
+  role_definition_name = "Azure Kubernetes Service Cluster User Role"
+  principal_id         = azurerm_chaos_studio_experiment.cpu_stress.identity[0].principal_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "chaos_cpu_stress_contributor" {
+  scope                = data.azurerm_kubernetes_cluster.aks.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_chaos_studio_experiment.cpu_stress.identity[0].principal_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "chaos_memory_stress_aks" {
+  scope                = data.azurerm_kubernetes_cluster.aks.id
+  role_definition_name = "Azure Kubernetes Service Cluster User Role"
+  principal_id         = azurerm_chaos_studio_experiment.memory_stress.identity[0].principal_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "chaos_memory_stress_contributor" {
+  scope                = data.azurerm_kubernetes_cluster.aks.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_chaos_studio_experiment.memory_stress.identity[0].principal_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "chaos_network_delay_aks" {
+  scope                = data.azurerm_kubernetes_cluster.aks.id
+  role_definition_name = "Azure Kubernetes Service Cluster User Role"
+  principal_id         = azurerm_chaos_studio_experiment.network_delay.identity[0].principal_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "chaos_network_delay_contributor" {
+  scope                = data.azurerm_kubernetes_cluster.aks.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_chaos_studio_experiment.network_delay.identity[0].principal_id
+  skip_service_principal_aad_check = true
+}
