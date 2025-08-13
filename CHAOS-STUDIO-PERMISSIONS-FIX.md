@@ -14,19 +14,19 @@ The following role assignments need to be created for each chaos experiment's ma
 
 ## Required Role Assignments
 
-### 1. Pod Failure Experiment (eshoppodfailure)
-**Principal ID**: `635492a3-62d5-47ac-bda2-f8b0d2cc9680`
+### 1. Pod Failure Experiment (eshop-pod-failure) - NEW
+**Principal ID**: `26ad1f83-e606-4d40-ad29-b576f5ef915b`
 
 ```bash
 # Azure Kubernetes Service Cluster User Role
 az role assignment create \
-  --assignee "635492a3-62d5-47ac-bda2-f8b0d2cc9680" \
+  --assignee "26ad1f83-e606-4d40-ad29-b576f5ef915b" \
   --role "Azure Kubernetes Service Cluster User Role" \
   --scope "/subscriptions/d7d7369b-a14f-43bc-a564-b4a077d170a9/resourceGroups/eShopCleverRG/providers/Microsoft.ContainerService/managedClusters/eshopcleveraks"
 
 # Contributor Role
 az role assignment create \
-  --assignee "635492a3-62d5-47ac-bda2-f8b0d2cc9680" \
+  --assignee "26ad1f83-e606-4d40-ad29-b576f5ef915b" \
   --role "Contributor" \
   --scope "/subscriptions/d7d7369b-a14f-43bc-a564-b4a077d170a9/resourceGroups/eShopCleverRG/providers/Microsoft.ContainerService/managedClusters/eshopcleveraks"
 ```
