@@ -1,0 +1,189 @@
+name: Chaos Engineering Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      experiment_type:
+        description: 'Type of chaos experiment to run'
+        required: true
+        default: 'pod-failure'
+        type: choice
+        options:
+        - pod-failure
+        - cpu-stress
+        - network-delay
+        - all
+      duration:
+        description: 'Duration of the experiment (e.g., 60s, 300s)'
+        required: false
+        default: '60s'
+  schedule:
+    # Run chaos tests every day at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  RESOURCE_GROUP: eShopCleverRG
+  AKS_CLUSTER: eshopcleveraks
+
+jobs:
+  chaos-engineering:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Get AKS credentials
+      run: |
+        az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.AKS_CLUSTER }} --overwrite-existing
+
+    - name: Verify application health before chaos
+      run: |
+        echo "Checking application health before chaos experiments..."
+        kubectl get pods -n eshop
+        kubectl get svc -n eshop
+        
+        # Check if all pods are running
+        kubectl wait --for=condition=Ready pod -l app=eshop-webmvc -n eshop --timeout=300s
+        kubectl wait --for=condition=Ready pod -l app=eshop-publicapi -n eshop --timeout=300s
+        
+        echo "✅ Application is healthy and ready for chaos testing"
+
+    - name: Run Pod Failure Experiment
+      if: ${{ github.event.inputs.experiment_type == 'pod-failure' || github.event.inputs.experiment_type == 'all' || github.event_name == 'schedule' }}
+      run: |
+        echo "🔥 Starting Pod Failure chaos experiment..."
+        
+        # Apply pod chaos experiment
+        kubectl apply -f k8s/pod-chaos-experiment.yaml
+        
+        # Wait for experiment to start
+        sleep 10
+        
+        # Monitor the experiment
+        kubectl get podchaos -n eshop
+        kubectl describe podchaos eshop-pod-chaos -n eshop
+        
+        # Wait for experiment duration
+        echo "Waiting for pod failure experiment to complete..."
+        sleep 70
+        
+        # Clean up
+        kubectl delete podchaos eshop-pod-chaos -n eshop
+
+    - name: Run CPU Stress Experiment
+      if: ${{ github.event.inputs.experiment_type == 'cpu-stress' || github.event.inputs.experiment_type == 'all' }}
+      run: |
+        echo "🔥 Starting CPU Stress chaos experiment..."
+        
+        # Apply CPU stress experiment
+        kubectl apply -f k8s/cpu-stress-chaos.yaml
+        
+        # Wait for experiment to start
+        sleep 10
+        
+        # Monitor the experiment
+        kubectl get stresschaos -n eshop
+        kubectl describe stresschaos eshop-cpu-stress -n eshop
+        
+        # Check CPU usage
+        echo "Monitoring CPU usage during stress test..."
+        kubectl top pods -n eshop || echo "Metrics may not be available immediately"
+        
+        # Wait for experiment duration (5 minutes for CPU stress)
+        echo "Waiting for CPU stress experiment to complete..."
+        sleep 310
+        
+        # Clean up
+        kubectl delete stresschaos eshop-cpu-stress -n eshop
+
+    - name: Run Network Delay Experiment
+      if: ${{ github.event.inputs.experiment_type == 'network-delay' || github.event.inputs.experiment_type == 'all' }}
+      run: |
+        echo "🔥 Starting Network Delay chaos experiment..."
+        
+        # Apply network delay experiment
+        kubectl apply -f k8s/network-delay-chaos.yaml
+        
+        # Wait for experiment to start
+        sleep 10
+        
+        # Monitor the experiment
+        kubectl get networkchaos -n eshop
+        kubectl describe networkchaos eshop-network-delay -n eshop
+        
+        # Wait for experiment duration (3 minutes for network delay)
+        echo "Waiting for network delay experiment to complete..."
+        sleep 190
+        
+        # Clean up
+        kubectl delete networkchaos eshop-network-delay -n eshop
+
+    - name: Verify application recovery
+      run: |
+        echo "🔍 Verifying application recovery after chaos experiments..."
+        
+        # Wait for pods to stabilize
+        sleep 30
+        
+        # Check pod status
+        kubectl get pods -n eshop
+        
+        # Wait for all pods to be ready again
+        kubectl wait --for=condition=Ready pod -l app=eshop-webmvc -n eshop --timeout=300s
+        kubectl wait --for=condition=Ready pod -l app=eshop-publicapi -n eshop --timeout=300s
+        
+        # Test application endpoints
+        WEBMVC_IP=$(kubectl get svc eshop-webmvc -n eshop -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        API_IP=$(kubectl get svc eshop-publicapi -n eshop -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        
+        echo "Testing application endpoints..."
+        if [ ! -z "$WEBMVC_IP" ]; then
+          curl -f http://$WEBMVC_IP/health || echo "WebMVC health check failed"
+        fi
+        
+        if [ ! -z "$API_IP" ]; then
+          curl -f http://$API_IP/health || echo "API health check failed"
+        fi
+        
+        echo "✅ Application recovery verification completed"
+
+    - name: Generate Chaos Report
+      run: |
+        echo "📊 Generating Chaos Engineering Report..."
+        
+        echo "## Chaos Engineering Test Report" > chaos-report.md
+        echo "**Date:** $(date)" >> chaos-report.md
+        echo "**Experiment Type:** ${{ github.event.inputs.experiment_type || 'scheduled' }}" >> chaos-report.md
+        echo "" >> chaos-report.md
+        
+        echo "### Application Status After Chaos" >> chaos-report.md
+        echo "\`\`\`" >> chaos-report.md
+        kubectl get pods -n eshop >> chaos-report.md
+        echo "\`\`\`" >> chaos-report.md
+        
+        echo "### Pod Events (Last 30 minutes)" >> chaos-report.md
+        echo "\`\`\`" >> chaos-report.md
+        kubectl get events -n eshop --sort-by='.lastTimestamp' | tail -20 >> chaos-report.md
+        echo "\`\`\`" >> chaos-report.md
+        
+        cat chaos-report.md
+
+    - name: Upload Chaos Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: chaos-engineering-report-${{ github.run_number }}
+        path: chaos-report.md

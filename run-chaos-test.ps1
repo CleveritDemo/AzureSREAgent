@@ -1,7 +1,11 @@
-# Azure Chaos Studio AKS Testing Script
-# This script runs chaos experiments and monitors the Azure SRE Agent response
+# Chaos Engineering Test Runner with Chaos Mesh
+# This script helps run chaos experiments locally using Chaos Mesh
 
 param(
+    [Parameter(Mandatory=$true)]
+    [ValidateSet("pod-failure", "cpu-stress", "network-delay", "all")]
+    [string]$ExperimentType,
+    
     [Parameter(Mandatory=$false)]
     [ValidateSet("pod-failure", "cpu-stress", "network-delay", "all-chaos")]
     [string]$ExperimentType = "pod-failure",
