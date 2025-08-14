@@ -76,17 +76,36 @@ resource "azurerm_kubernetes_cluster" "eshop_aks" {
   kubernetes_version  = "1.32"
 
   default_node_pool {
-    name            = "nodepool1"
-    node_count      = 1
-    vm_size         = "Standard_D2s_v3"  # Changed to available VM size
-    type            = "VirtualMachineScaleSets"
-    os_disk_size_gb = 128
-    os_disk_type    = "Managed"
-    max_pods        = 250
+    name                = "nodepool1"
+    min_count          = 1                  # Minimum nodes for autoscaling
+    max_count          = 2                  # Maximum nodes (as requested)
+    vm_size            = "Standard_D2s_v3"  # Changed to available VM size
+    type               = "VirtualMachineScaleSets"
+    os_disk_size_gb    = 128
+    os_disk_type       = "Managed"
+    max_pods           = 250
 
     upgrade_settings {
       max_surge = "10%"
     }
+  }
+
+  # Enable cluster autoscaler with autorecovery settings
+  auto_scaler_profile {
+    balance_similar_node_groups      = false
+    expander                        = "random"
+    max_graceful_termination_sec    = "300"
+    max_node_provisioning_time      = "7m"
+    max_unready_nodes              = 3
+    max_unready_percentage         = 45
+    new_pod_scale_up_delay         = "10s"
+    scale_down_delay_after_add     = "10m"
+    scale_down_delay_after_delete  = "10s"
+    scale_down_delay_after_failure = "3m"
+    scan_interval                  = "10s"
+    scale_down_unneeded           = "10m"
+    scale_down_unready            = "20m"
+    scale_down_utilization_threshold = 0.5
   }
 
   identity {
